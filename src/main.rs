@@ -7,4 +7,5 @@ fn main() {
 
     math_interpreter::interpret("2*4/3");
     math_interpreter::interpret("10.8E3/3.5E2");
+    math_interpreter::interpret("3 * ( 4 - 1 ) + 2");
 }

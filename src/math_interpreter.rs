@@ -1,11 +1,14 @@
 mod parser;
 mod scanner;
+mod abstract_syntax_tree;
 
 use parser::Parser;
 use scanner::Scanner;
 
 use parser::code::OpCode;
 use scanner::object::Object;
+
+use crate::math_interpreter::abstract_syntax_tree::{parser::AstParser, interpreter::Interpreter};
 
 #[derive(Debug)]
 enum BinaryOperation {
@@ -30,19 +33,15 @@ impl BinaryOperation {
 
 pub fn interpret(source: &str) {
     let scanner = Scanner::new();
-    println!("source:\n{}", source);
+    //println!("source:\n{}", source);
     let tokens = scanner.scan_tokens(source).unwrap();
-    println!("{:?}", tokens);
-    let parser = Parser::new();
+    
+    let mut ast_parser = AstParser::new(tokens);
+    let expression = ast_parser.expression().unwrap();
+    //println!("Expression: {:?}", expression);
 
-    let mut instructions: Vec<OpCode> = Vec::new();
-    let mut data: Vec<Object> = Vec::new();
-
-    parser.parse_instructions(tokens, &mut instructions, &mut data);
-    println!("instructions: \n{:?}", &instructions);
-    println!("data: \n{:?}", &data);
-
-    run(instructions, data).unwrap();
+    let interpreter = Interpreter {};
+    interpreter.interpret_expression(expression);
 }
 
 fn run(instructions: Vec<OpCode>, data: Vec<Object>) -> Result<(), String> {
