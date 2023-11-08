@@ -4,9 +4,9 @@ pub mod literal;
 pub mod unary;
 
 use binary::Binary;
-use unary::Unary;
-use literal::Literal;
 use grouping::Grouping;
+use literal::Literal;
+use unary::Unary;
 
 use super::visitor::ExpressionVisitor;
 
@@ -16,7 +16,7 @@ pub enum Expression {
     Binary(Box<Binary>),
     Unary(Box<Unary>),
     Literal(Literal),
-    Grouping(Box<Grouping>)
+    Grouping(Box<Grouping>),
 }
 
 impl Expression {
@@ -29,4 +29,3 @@ impl Expression {
         }
     }
 }
-

@@ -1,18 +1,17 @@
 use crate::math_interpreter::scanner::token::{Token, TokenType};
 
-use super::expression::{Expression, literal::Literal, grouping::Grouping, unary::Unary, binary::Binary};
+use super::expression::{
+    binary::Binary, grouping::Grouping, literal::Literal, unary::Unary, Expression,
+};
 
 pub struct AstParser {
     tokens: Vec<Token>,
-    current: usize
+    current: usize,
 }
 
 impl AstParser {
     pub fn new(tokens: Vec<Token>) -> Self {
-        Self {
-            tokens,
-            current: 0
-        }
+        Self { tokens, current: 0 }
     }
 
     pub fn expression(&mut self) -> Result<Expression, String> {
@@ -26,13 +25,10 @@ impl AstParser {
             let operator = self.previous().to_owned();
             let right = self.multiplication()?;
 
-            expression = Expression::Binary(
-                Box::new(Binary::new(expression, right, operator))
-            )
+            expression = Expression::Binary(Box::new(Binary::new(expression, right, operator)))
         }
 
         Ok(expression)
-
     }
 
     fn multiplication(&mut self) -> Result<Expression, String> {
@@ -42,9 +38,7 @@ impl AstParser {
             let operator = self.previous().to_owned();
             let right = self.unary()?;
 
-            expression = Expression::Binary(
-                Box::new(Binary::new(expression, right, operator))
-            )
+            expression = Expression::Binary(Box::new(Binary::new(expression, right, operator)))
         }
 
         Ok(expression)
@@ -55,11 +49,7 @@ impl AstParser {
             let operator = self.previous().to_owned();
             let right = self.unary()?;
 
-            return Ok(
-                Expression::Unary(
-                    Box::new(Unary::new(right, operator))
-                )
-            );
+            return Ok(Expression::Unary(Box::new(Unary::new(right, operator))));
         }
 
         self.primary()
@@ -74,9 +64,7 @@ impl AstParser {
         if self.match_tokens(&[TokenType::LeftParen]) {
             let expression = self.expression()?;
             self.consume(TokenType::RightParen, "expect ')' after expression")?;
-            return Ok(Expression::Grouping(
-                Box::new(Grouping::new(expression)))
-            );
+            return Ok(Expression::Grouping(Box::new(Grouping::new(expression))));
         }
 
         Err(format!("Expect Expression"))
@@ -90,7 +78,7 @@ impl AstParser {
             }
         }
 
-        return false
+        return false;
     }
 
     fn advance(&mut self) -> &Token {
@@ -103,7 +91,7 @@ impl AstParser {
 
     fn consume(&mut self, token_type: TokenType, error_message: &str) -> Result<&Token, String> {
         if self.check(token_type) {
-            return Ok(self.advance())
+            return Ok(self.advance());
         }
 
         Err(format!("{}", error_message))
@@ -128,6 +116,4 @@ impl AstParser {
     fn previous(&self) -> &Token {
         &self.tokens[self.current - 1]
     }
-
-
 }

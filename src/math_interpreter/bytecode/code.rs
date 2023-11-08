@@ -1,11 +1,11 @@
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum OpCode {
     Constant,
     ConstantIndex(u16),
-    Negate,
-    Subtract,
     Add,
-    Multiply,
+    Subtract,
     Divide,
+    Multiply,
+    Negate,
     Return,
 }

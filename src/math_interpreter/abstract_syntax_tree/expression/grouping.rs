@@ -4,7 +4,7 @@ use super::Expression;
 
 #[derive(Debug)]
 pub struct Grouping {
-    pub expression: Expression
+    pub expression: Expression,
 }
 
 impl Grouping {

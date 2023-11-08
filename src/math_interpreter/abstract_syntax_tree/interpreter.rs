@@ -1,15 +1,14 @@
-use crate::math_interpreter::scanner::{object::Object, token::TokenType};
 use super::{expression::Expression, visitor::ExpressionVisitor};
+use crate::math_interpreter::scanner::{object::Object, token::TokenType};
 
-pub struct Interpreter {
+/// A simple abstract syntax tree interpreter
+pub struct AstInterpreter {}
 
-}
+impl AstInterpreter {
+    pub fn interpret_expression(&self, expression: Expression) -> Result<String, String> {
+        let result = self.evaluate(&expression)?;
 
-impl Interpreter {
-    pub fn interpret_expression(&self, expression: Expression) {
-        let result = self.evaluate(&expression).unwrap();
-
-        println!("result: {}", result.to_string())
+        Ok(result.to_string())
     }
 
     fn evaluate(&self, expression: &Expression) -> Result<Object, String> {
@@ -17,7 +16,7 @@ impl Interpreter {
     }
 }
 
-impl ExpressionVisitor for Interpreter {
+impl ExpressionVisitor for AstInterpreter {
     type Output = Result<Object, String>;
 
     fn visit_binary(&self, binary: &super::expression::binary::Binary) -> Self::Output {
@@ -27,7 +26,7 @@ impl ExpressionVisitor for Interpreter {
         match binary.operator.token_type {
             TokenType::Plus => {
                 if let (Object::Number(left), Object::Number(right)) = (left, right) {
-                    return Ok(Object::Number(left + right))
+                    return Ok(Object::Number(left + right));
                 }
 
                 Err(format!("Cannot add non numbers"))
@@ -35,7 +34,7 @@ impl ExpressionVisitor for Interpreter {
 
             TokenType::Minus => {
                 if let (Object::Number(left), Object::Number(right)) = (left, right) {
-                    return Ok(Object::Number(left - right))
+                    return Ok(Object::Number(left - right));
                 }
 
                 Err(format!("Cannot subtract non numbers"))
@@ -43,7 +42,7 @@ impl ExpressionVisitor for Interpreter {
 
             TokenType::Divide => {
                 if let (Object::Number(left), Object::Number(right)) = (left, right) {
-                    return Ok(Object::Number(left / right))
+                    return Ok(Object::Number(left / right));
                 }
 
                 Err(format!("Cannot divide non numbers"))
@@ -51,15 +50,16 @@ impl ExpressionVisitor for Interpreter {
 
             TokenType::Star => {
                 if let (Object::Number(left), Object::Number(right)) = (left, right) {
-                    return Ok(Object::Number(left * right))
+                    return Ok(Object::Number(left * right));
                 }
 
                 Err(format!("Cannot multiply non numbers"))
             }
 
-            _ => {
-                Err (format!("Undefined binary operation: {:?}", binary.operator.token_type))
-            }
+            _ => Err(format!(
+                "Undefined binary operation: {:?}",
+                binary.operator.token_type
+            )),
         }
     }
 
@@ -75,9 +75,10 @@ impl ExpressionVisitor for Interpreter {
                 Err(format!("Cannot negate a non number"))
             }
 
-            _ => {
-                Err(format!("Undefined Unary Operation : {:?}", unary.operator.token_type))
-            }
+            _ => Err(format!(
+                "Undefined Unary Operation : {:?}",
+                unary.operator.token_type
+            )),
         }
     }
 

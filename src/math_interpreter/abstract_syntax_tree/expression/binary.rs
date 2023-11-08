@@ -1,5 +1,7 @@
 use super::Expression;
-use crate::math_interpreter::{scanner::token::Token, abstract_syntax_tree::visitor::ExpressionVisitor};
+use crate::math_interpreter::{
+    abstract_syntax_tree::visitor::ExpressionVisitor, scanner::token::Token,
+};
 
 #[derive(Debug)]
 pub struct Binary {
@@ -14,6 +16,10 @@ impl Binary {
     }
 
     pub fn new(left: Expression, right: Expression, operator: Token) -> Self {
-        Self { left, right, operator }
+        Self {
+            left,
+            right,
+            operator,
+        }
     }
 }

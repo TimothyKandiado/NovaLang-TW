@@ -107,9 +107,15 @@ impl Scanner {
 
         let next = self.peek();
         let mut exponent = 0f64;
-
+        let mut exponent_sign = 1; // sign of exponent
+                                   // scan exponent section if any
         if next == 'E' {
             self.advance();
+
+            if self.peek() == '-' {
+                exponent_sign = -1;
+                self.advance();
+            }
             self.start = self.current;
 
             while !self.is_at_end() && self.peek().is_digit(10) {
@@ -128,7 +134,7 @@ impl Scanner {
         }
 
         if let Ok(number) = number_result {
-            let number = number * 10f64.powf(exponent);
+            let number = number * 10f64.powf(exponent * exponent_sign as f64);
             Ok(Token {
                 token_type: TokenType::Number,
                 object: object::Object::Number(number),

@@ -1,13 +1,7 @@
-
-use super::expression::{
-    binary::Binary,
-    unary::Unary,
-    literal::Literal,
-    grouping::Grouping};
-
+use super::expression::{binary::Binary, grouping::Grouping, literal::Literal, unary::Unary};
 
 pub trait ExpressionVisitor {
-    type Output; 
+    type Output;
 
     fn visit_binary(&self, binary: &Binary) -> Self::Output;
     fn visit_unary(&self, unary: &Unary) -> Self::Output;

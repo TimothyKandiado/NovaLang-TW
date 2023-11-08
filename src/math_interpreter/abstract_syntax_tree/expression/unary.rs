@@ -1,11 +1,13 @@
-use crate::math_interpreter::{scanner::token::Token, abstract_syntax_tree::visitor::ExpressionVisitor};
+use crate::math_interpreter::{
+    abstract_syntax_tree::visitor::ExpressionVisitor, scanner::token::Token,
+};
 
 use super::Expression;
 
 #[derive(Debug)]
 pub struct Unary {
     pub operator: Token,
-    pub right: Expression
+    pub right: Expression,
 }
 
 impl Unary {
