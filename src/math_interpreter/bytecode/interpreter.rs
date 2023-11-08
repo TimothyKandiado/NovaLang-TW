@@ -92,7 +92,7 @@ impl BytecodeInterpreter {
             Ok(answer)
         } 
         else {
-            Err(format!("Fatal error occurred"))
+            Err("Fatal error occurred".to_string())
         }
     }
 }
