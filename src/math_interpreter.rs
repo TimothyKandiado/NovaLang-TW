@@ -21,18 +21,15 @@ pub fn interpret(source: &str) -> Result<String, String> {
     interpreter.interpret_expression(expression)
 }
 
-pub fn interpret_with_bytecode(source: &str) -> Result<(), String> {
+pub fn interpret_with_bytecode(source: &str) -> Result<String, String> {
     let expression = generate_parsed_ast(source)?;
     let ast_to_bytecode = AstToBytecode {};
     let chunk = ast_to_bytecode.convert_expression_to_bytecode(&expression)?;
 
-    println!("instructions: {:?}", chunk.instructions);
-    println!("constants: {:?}", chunk.constants);
-
     let mut bytecode_interpreter = BytecodeInterpreter::new();
-    bytecode_interpreter.interpret(chunk)?;
+    let result = bytecode_interpreter.interpret(chunk)?;
 
-    Ok(())
+    Ok(result.to_string())
 }
 
 fn generate_parsed_ast(source: &str) -> Result<Expression, String> {

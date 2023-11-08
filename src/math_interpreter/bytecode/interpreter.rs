@@ -31,14 +31,14 @@ impl BytecodeInterpreter {
         Self { stack: Vec::new() }
     }
 
-    pub fn interpret(&mut self, chunk: Chunk) -> Result<(), String> {
+    pub fn interpret(&mut self, chunk: Chunk) -> Result<Object, String> {
         self.run(chunk)
     }
 
-    fn run(&mut self, chunk: Chunk) -> Result<(), String> {
+    fn run(&mut self, chunk: Chunk) -> Result<Object, String> {
         let mut current_instruction_index = 0usize;
         loop {
-            println!("stack: {:?}", &self.stack);
+            //println!("stack: {:?}", &self.stack);
             let current_instruction = chunk.instructions[current_instruction_index];
 
             match current_instruction {
@@ -78,7 +78,7 @@ impl BytecodeInterpreter {
                 }
 
                 OpCode::Return => {
-                    println!("stack: {:?}", &self.stack);
+                    //println!("stack: {:?}", &self.stack);
                     break;
                 }
 
@@ -88,7 +88,12 @@ impl BytecodeInterpreter {
             current_instruction_index += 1;
         }
 
-        Ok(())
+        if let Some(answer) = self.stack.pop() {
+            Ok(answer)
+        } 
+        else {
+            Err(format!("Fatal error occurred"))
+        }
     }
 }
 

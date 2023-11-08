@@ -28,7 +28,7 @@ fn repl() {
             break;
         }
 
-        let result = math_interpreter::interpret(input).unwrap();
+        let result = math_interpreter::interpret_with_bytecode(input).unwrap();
         println!("{}", result);
     }
 }
