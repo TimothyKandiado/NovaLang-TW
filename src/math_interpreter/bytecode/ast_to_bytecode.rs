@@ -1,12 +1,11 @@
-use crate::math_interpreter::{abstract_syntax_tree::{
-    expression::Expression, visitor::ExpressionVisitor,
-}, scanner::token::TokenType};
+use crate::math_interpreter::{
+    abstract_syntax_tree::{expression::Expression, visitor::ExpressionVisitor},
+    scanner::token::TokenType,
+};
 
 use super::{chunk::Chunk, code::OpCode};
 
-pub struct AstToBytecode {
-
-}
+pub struct AstToBytecode {}
 
 impl AstToBytecode {
     pub fn convert_expression_to_bytecode(&self, expression: &Expression) -> Result<Chunk, String> {
@@ -38,9 +37,7 @@ impl ExpressionVisitor for AstToBytecode {
             TokenType::Divide => left.instructions.push(OpCode::Divide),
             TokenType::Star => left.instructions.push(OpCode::Multiply),
 
-            _ => {
-                return Err(format!("unknown binary operator"))
-            }
+            _ => return Err(format!("unknown binary operator")),
         }
 
         Ok(left)
@@ -56,7 +53,10 @@ impl ExpressionVisitor for AstToBytecode {
             TokenType::Minus => right.instructions.push(OpCode::Negate),
 
             _ => {
-                return Err(format!("Unknown unary operator {:?}", unary.operator.token_type))
+                return Err(format!(
+                    "Unknown unary operator {:?}",
+                    unary.operator.token_type
+                ))
             }
         }
 

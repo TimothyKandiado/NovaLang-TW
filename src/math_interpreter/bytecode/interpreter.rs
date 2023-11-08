@@ -3,7 +3,10 @@ use crate::math_interpreter::scanner::object::Object;
 use super::{chunk::Chunk, code::OpCode};
 
 enum BinaryOperation {
-    Add, Subtract, Multiply, Divide
+    Add,
+    Subtract,
+    Multiply,
+    Divide,
 }
 
 impl BinaryOperation {
@@ -14,14 +17,13 @@ impl BinaryOperation {
             OpCode::Multiply => Some(Self::Multiply),
             OpCode::Divide => Some(Self::Divide),
 
-            _ => None
-
+            _ => None,
         }
     }
 }
 
 pub struct BytecodeInterpreter {
-    stack: Vec<Object>
+    stack: Vec<Object>,
 }
 
 impl BytecodeInterpreter {
@@ -34,7 +36,6 @@ impl BytecodeInterpreter {
     }
 
     fn run(&mut self, chunk: Chunk) -> Result<(), String> {
-        
         let mut current_instruction_index = 0usize;
         loop {
             println!("stack: {:?}", &self.stack);
@@ -43,16 +44,16 @@ impl BytecodeInterpreter {
             match current_instruction {
                 OpCode::Constant => {
                     current_instruction_index += 1;
-                    if let OpCode::ConstantIndex(constant_index) = chunk.instructions[current_instruction_index] {
+                    if let OpCode::ConstantIndex(constant_index) =
+                        chunk.instructions[current_instruction_index]
+                    {
                         let constant = chunk.constants[constant_index as usize].clone();
 
                         self.stack.push(constant)
-                    }
-                    else {
+                    } else {
                         return Err(format!("corrupted constant in chunk"));
                     }
-
-                },
+                }
 
                 OpCode::Add | OpCode::Subtract | OpCode::Divide | OpCode::Multiply => {
                     let second = self.stack.pop();
@@ -62,15 +63,13 @@ impl BytecodeInterpreter {
                         if let Some(operation) = BinaryOperation::from_opcode(current_instruction) {
                             let result = perform_binary_operation(first, second, operation)?;
                             self.stack.push(result);
+                        } else {
+                            return Err(format!("Undefined binary operation"));
                         }
-                        else {
-                            return Err(format!("Undefined binary operation"))
-                        }
-                    }
-                    else {
+                    } else {
                         return Err(format!("Not enough operands for binary operation"));
                     }
-                },
+                }
 
                 OpCode::Negate => {
                     if let Some(Object::Number(number)) = self.stack.pop() {
@@ -83,9 +82,7 @@ impl BytecodeInterpreter {
                     break;
                 }
 
-                _ => {
-                    return Err(format!("Undefined instruction code"))
-                }
+                _ => return Err(format!("Undefined instruction code")),
             }
 
             current_instruction_index += 1;
@@ -95,7 +92,11 @@ impl BytecodeInterpreter {
     }
 }
 
-fn perform_binary_operation(first: Object, second: Object, operation: BinaryOperation) -> Result<Object, String> {
+fn perform_binary_operation(
+    first: Object,
+    second: Object,
+    operation: BinaryOperation,
+) -> Result<Object, String> {
     if let (Object::Number(first), Object::Number(second)) = (first, second) {
         match operation {
             BinaryOperation::Add => Ok(Object::Number(first + second)),

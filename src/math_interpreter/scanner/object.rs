@@ -6,7 +6,6 @@ pub enum Object {
 }
 
 impl Object {
-
     pub fn to_string(&self) -> String {
         match self {
             Object::String(string) => string.clone(),

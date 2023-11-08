@@ -4,11 +4,14 @@ mod scanner;
 
 use scanner::Scanner;
 
-use crate::math_interpreter::{abstract_syntax_tree::{
-    interpreter::AstInterpreter, parser::AstParser,
-}, bytecode::interpreter::BytecodeInterpreter};
+use crate::math_interpreter::{
+    abstract_syntax_tree::{interpreter::AstInterpreter, parser::AstParser},
+    bytecode::interpreter::BytecodeInterpreter,
+};
 
-use self::{abstract_syntax_tree::expression::Expression, bytecode::ast_to_bytecode::AstToBytecode};
+use self::{
+    abstract_syntax_tree::expression::Expression, bytecode::ast_to_bytecode::AstToBytecode,
+};
 
 pub fn interpret(source: &str) -> Result<String, String> {
     let expression = generate_parsed_ast(source)?;
@@ -28,7 +31,7 @@ pub fn interpret_with_bytecode(source: &str) -> Result<(), String> {
 
     let mut bytecode_interpreter = BytecodeInterpreter::new();
     bytecode_interpreter.interpret(chunk)?;
-    
+
     Ok(())
 }
 

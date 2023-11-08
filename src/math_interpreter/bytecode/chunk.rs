@@ -20,7 +20,8 @@ impl Chunk {
         self.constants.push(object);
 
         let constant_index = self.constants.len() - 1;
-        self.instructions.push(OpCode::ConstantIndex(constant_index as u16));
+        self.instructions
+            .push(OpCode::ConstantIndex(constant_index as u16));
 
         Ok(())
     }
