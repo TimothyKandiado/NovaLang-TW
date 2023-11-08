@@ -37,7 +37,7 @@ impl ExpressionVisitor for AstToBytecode {
             TokenType::Divide => left.instructions.push(OpCode::Divide),
             TokenType::Star => left.instructions.push(OpCode::Multiply),
 
-            _ => return Err(format!("unknown binary operator")),
+            _ => return Err("unknown binary operator".to_string()),
         }
 
         Ok(left)

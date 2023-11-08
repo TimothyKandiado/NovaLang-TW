@@ -51,7 +51,7 @@ impl BytecodeInterpreter {
 
                         self.stack.push(constant)
                     } else {
-                        return Err(format!("corrupted constant in chunk"));
+                        return Err("corrupted constant in chunk".to_string());
                     }
                 }
 
@@ -64,10 +64,10 @@ impl BytecodeInterpreter {
                             let result = perform_binary_operation(first, second, operation)?;
                             self.stack.push(result);
                         } else {
-                            return Err(format!("Undefined binary operation"));
+                            return Err("Undefined binary operation".to_string());
                         }
                     } else {
-                        return Err(format!("Not enough operands for binary operation"));
+                        return Err("Not enough operands for binary operation".to_string());
                     }
                 }
 
@@ -82,7 +82,7 @@ impl BytecodeInterpreter {
                     break;
                 }
 
-                _ => return Err(format!("Undefined instruction code")),
+                _ => return Err("Undefined instruction code".to_string()),
             }
 
             current_instruction_index += 1;
@@ -105,6 +105,6 @@ fn perform_binary_operation(
             BinaryOperation::Divide => Ok(Object::Number(first / second)),
         }
     } else {
-        Err(format!("Binary operations only work on numbers"))
+        Err("Binary operations only work on numbers".to_string())
     }
 }

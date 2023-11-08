@@ -67,7 +67,7 @@ impl AstParser {
             return Ok(Expression::Grouping(Box::new(Grouping::new(expression))));
         }
 
-        Err(format!("Expect Expression"))
+        Err("Expect Expression".to_string())
     }
 
     fn match_tokens(&mut self, token_types: &[TokenType]) -> bool {
@@ -78,7 +78,7 @@ impl AstParser {
             }
         }
 
-        return false;
+        false
     }
 
     fn advance(&mut self) -> &Token {
@@ -94,7 +94,7 @@ impl AstParser {
             return Ok(self.advance());
         }
 
-        Err(format!("{}", error_message))
+        Err(error_message.to_string())
     }
 
     fn check(&self, token_type: TokenType) -> bool {

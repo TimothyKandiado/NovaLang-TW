@@ -29,7 +29,7 @@ impl ExpressionVisitor for AstInterpreter {
                     return Ok(Object::Number(left + right));
                 }
 
-                Err(format!("Cannot add non numbers"))
+                Err("Cannot add non numbers".to_string())
             }
 
             TokenType::Minus => {
@@ -37,7 +37,7 @@ impl ExpressionVisitor for AstInterpreter {
                     return Ok(Object::Number(left - right));
                 }
 
-                Err(format!("Cannot subtract non numbers"))
+                Err("Cannot subtract non numbers".to_string())
             }
 
             TokenType::Divide => {
@@ -45,7 +45,7 @@ impl ExpressionVisitor for AstInterpreter {
                     return Ok(Object::Number(left / right));
                 }
 
-                Err(format!("Cannot divide non numbers"))
+                Err("Cannot divide non numbers".to_string())
             }
 
             TokenType::Star => {
@@ -53,7 +53,7 @@ impl ExpressionVisitor for AstInterpreter {
                     return Ok(Object::Number(left * right));
                 }
 
-                Err(format!("Cannot multiply non numbers"))
+                Err("Cannot multiply non numbers".to_string())
             }
 
             _ => Err(format!(
@@ -72,7 +72,7 @@ impl ExpressionVisitor for AstInterpreter {
                     return Ok(Object::Number(-right));
                 }
 
-                Err(format!("Cannot negate a non number"))
+                Err("Cannot negate a non number".to_string())
             }
 
             _ => Err(format!(

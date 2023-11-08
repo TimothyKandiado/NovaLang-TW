@@ -68,7 +68,7 @@ impl Scanner {
                 object: object::Object::None,
             }),
 
-            x if x.is_digit(10) => self.scan_number(),
+            x if x.is_ascii_digit() => self.scan_number(),
             x if x.is_alphabetic() => self.scan_string(),
 
             _ => Err(format!("Undefined character {}", current_character)),
@@ -89,7 +89,7 @@ impl Scanner {
 
     fn scan_number(&mut self) -> Result<Token, String> {
         // consume all digits until the end or non digit character
-        while !self.is_at_end() && self.peek().is_digit(10) {
+        while !self.is_at_end() && self.peek().is_ascii_digit() {
             self.advance();
         }
 
@@ -97,7 +97,7 @@ impl Scanner {
         // if next character is a decimal point consume all remaining digits
         if next == '.' {
             self.advance();
-            while !self.is_at_end() && self.peek().is_digit(10) {
+            while !self.is_at_end() && self.peek().is_ascii_digit() {
                 self.advance();
             }
         }
@@ -118,14 +118,14 @@ impl Scanner {
             }
             self.start = self.current;
 
-            while !self.is_at_end() && self.peek().is_digit(10) {
+            while !self.is_at_end() && self.peek().is_ascii_digit() {
                 self.advance();
             }
             let exponent_segment = &self.source[self.start..self.current].to_string();
             if let Ok(exponent_value) = exponent_segment.parse::<f64>() {
                 exponent = exponent_value;
             } else {
-                return Err(format!("could not parse exponent value"));
+                return Err("could not parse exponent value".to_string());
             }
         }
 
