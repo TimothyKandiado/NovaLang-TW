@@ -1,5 +1,5 @@
 use super::{expression::Expression, visitor::ExpressionVisitor};
-use crate::math_interpreter::scanner::{object::Object, token::TokenType};
+use crate::interpreter::scanner::{object::Object, token::TokenType};
 
 /// A simple abstract syntax tree interpreter
 pub struct AstInterpreter {}

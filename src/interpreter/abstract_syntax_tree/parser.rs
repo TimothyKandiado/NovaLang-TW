@@ -1,4 +1,4 @@
-use crate::math_interpreter::scanner::token::{Token, TokenType};
+use crate::interpreter::scanner::token::{Token, TokenType};
 
 use super::expression::{
     binary::Binary, grouping::Grouping, literal::Literal, math_function::MathFunction,

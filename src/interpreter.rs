@@ -4,7 +4,7 @@ mod scanner;
 
 use scanner::Scanner;
 
-use crate::math_interpreter::{
+use crate::interpreter::{
     abstract_syntax_tree::{interpreter::AstInterpreter, parser::AstParser},
     bytecode::interpreter::BytecodeInterpreter,
 };

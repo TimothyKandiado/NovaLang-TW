@@ -1,1 +1,1 @@
-pub mod math_interpreter;
+pub mod interpreter;

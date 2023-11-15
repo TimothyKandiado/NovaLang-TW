@@ -1,4 +1,4 @@
-use crate::math_interpreter::scanner::object::Object;
+use crate::interpreter::scanner::object::Object;
 
 use super::{chunk::Chunk, code::OpCode};
 

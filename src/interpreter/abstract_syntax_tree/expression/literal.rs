@@ -1,4 +1,4 @@
-use crate::math_interpreter::{
+use crate::interpreter::{
     abstract_syntax_tree::visitor::ExpressionVisitor, scanner::object::Object,
 };
 

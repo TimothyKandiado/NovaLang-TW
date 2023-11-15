@@ -3,7 +3,7 @@ use std::{
     process::exit,
 };
 
-use simple_interpreter::math_interpreter;
+use simple_interpreter::interpreter;
 
 const PROMPT: &str = ">>";
 fn main() {
@@ -28,7 +28,7 @@ fn repl() {
             break;
         }
 
-        let result = math_interpreter::interpret(input);
+        let result = interpreter::interpret(input);
         if let Ok(answer) = result {
             println!("{}", answer);
         } else {
