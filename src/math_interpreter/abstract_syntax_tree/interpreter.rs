@@ -89,4 +89,27 @@ impl ExpressionVisitor for AstInterpreter {
     fn visit_literal(&self, literal: &super::expression::literal::Literal) -> Self::Output {
         Ok(literal.object.clone())
     }
+
+    fn visit_math_function(
+        &self,
+        math_function: &super::expression::math_function::MathFunction,
+    ) -> Self::Output {
+        let id = math_function.function_id.to_string();
+        if let Object::Number(argument) = self.evaluate(&math_function.argument)? {
+            let answer = match id.as_str() {
+                "sin" => argument.sin(),
+                "cos" => argument.cos(),
+                "tan" => argument.tan(),
+                "ln" => argument.ln(),
+                "log" => argument.log10(),
+                "sqrt" => argument.sqrt(),
+
+                _ => return Err(format!("No mathematical function named: {}", id)),
+            };
+
+            return Ok(Object::Number(answer));
+        }
+
+        return Err(format!("argument needs to be a number"));
+    }
 }

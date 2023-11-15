@@ -90,8 +90,7 @@ impl BytecodeInterpreter {
 
         if let Some(answer) = self.stack.pop() {
             Ok(answer)
-        } 
-        else {
+        } else {
             Err("Fatal error occurred".to_string())
         }
     }

@@ -1,7 +1,8 @@
 use crate::math_interpreter::scanner::token::{Token, TokenType};
 
 use super::expression::{
-    binary::Binary, grouping::Grouping, literal::Literal, unary::Unary, Expression,
+    binary::Binary, grouping::Grouping, literal::Literal, math_function::MathFunction,
+    unary::Unary, Expression,
 };
 
 pub struct AstParser {
@@ -57,13 +58,24 @@ impl AstParser {
 
     fn primary(&mut self) -> Result<Expression, String> {
         if self.match_tokens(&[TokenType::Number, TokenType::Identifier]) {
-            let token = self.previous();
-            return Ok(Expression::Literal(Literal::new(token.object.clone())));
+            let token = self.previous().clone();
+            if self.match_tokens(&[TokenType::LeftParen]) {
+                let function_id = token.object;
+                let arguments = self.expression()?;
+                self.consume(TokenType::RightParen, "Expect ')' after function call")?;
+
+                return Ok(Expression::MathFunction(Box::new(MathFunction::new(
+                    function_id,
+                    arguments,
+                ))));
+            }
+
+            return Ok(Expression::Literal(Literal::new(token.object)));
         }
 
         if self.match_tokens(&[TokenType::LeftParen]) {
             let expression = self.expression()?;
-            self.consume(TokenType::RightParen, "expect ')' after expression")?;
+            self.consume(TokenType::RightParen, "Expect ')' after expression")?;
             return Ok(Expression::Grouping(Box::new(Grouping::new(expression))));
         }
 
@@ -111,6 +123,10 @@ impl AstParser {
 
     fn peek(&self) -> &Token {
         &self.tokens[self.current]
+    }
+
+    fn peek_next(&self) -> Option<&Token> {
+        self.tokens.get(self.current + 1)
     }
 
     fn previous(&self) -> &Token {

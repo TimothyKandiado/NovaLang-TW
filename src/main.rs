@@ -28,7 +28,11 @@ fn repl() {
             break;
         }
 
-        let result = math_interpreter::interpret_with_bytecode(input).unwrap();
-        println!("{}", result);
+        let result = math_interpreter::interpret(input);
+        if let Ok(answer) = result {
+            println!("{}", answer);
+        } else {
+            eprintln!("Error: {}", result.unwrap_err())
+        }
     }
 }

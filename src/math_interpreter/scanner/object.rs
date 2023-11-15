@@ -12,7 +12,7 @@ impl Display for Object {
         let description = match self {
             Self::None => "None".to_string(),
             Self::Number(number) => number.to_string(),
-            Self::String(string) => string.clone()
+            Self::String(string) => string.clone(),
         };
 
         write!(f, "{}", description)
