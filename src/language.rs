@@ -2,7 +2,7 @@ mod abstract_syntax_tree;
 mod bytecode;
 mod scanner;
 
-use scanner::Scanner;
+pub use scanner::Scanner;
 
 use crate::language::{
     abstract_syntax_tree::{interpreter::AstInterpreter, parser::AstParser},

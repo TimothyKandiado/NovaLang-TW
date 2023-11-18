@@ -18,6 +18,18 @@ pub enum TokenType {
     While,
     NewLine,
     End,
+    Return,
+
+    True,
+    False,
+    And,
+    Or,
+    EqualEqual,
+    NotEqual,
+    GreaterEqual,
+    LessEqual,
+    Greater,
+    Less
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]

@@ -3,6 +3,10 @@ pub mod token;
 
 use token::{Token, TokenType};
 
+fn simple_token(token_type: TokenType) -> Token {
+    Token { token_type, object: object::Object::None }
+}
+
 pub struct Scanner {
     source: String,
 
@@ -46,35 +50,30 @@ impl Scanner {
         let current_character = self.advance();
 
         match current_character {
-            '+' => Ok(Token {
-                token_type: TokenType::Plus,
-                object: object::Object::None,
-            }),
-            '-' => Ok(Token {
-                token_type: TokenType::Minus,
-                object: object::Object::None,
-            }),
-            '*' => Ok(Token {
-                token_type: TokenType::Star,
-                object: object::Object::None,
-            }),
-            '/' => Ok(Token {
-                token_type: TokenType::Slash,
-                object: object::Object::None,
-            }),
+            '+' => Ok(simple_token(TokenType::Plus)),
+            '-' => Ok(simple_token(TokenType::Minus)),
+            '*' => Ok(simple_token(TokenType::Star)),
+            '/' => Ok(simple_token(TokenType::Slash)),
 
-            '(' => Ok(Token {
-                token_type: TokenType::LeftParen,
-                object: object::Object::None,
-            }),
-            ')' => Ok(Token {
-                token_type: TokenType::RightParen,
-                object: object::Object::None,
-            }),
-            ':' => Ok(Token { 
-                token_type: TokenType::Colon, 
-                object: object::Object::None 
-            }),
+            '(' => Ok(simple_token(TokenType::LeftParen)),
+            ')' => Ok(simple_token(TokenType::RightParen)),
+            ':' => Ok(simple_token(TokenType::Colon)),
+            '&' => {
+                let next = self.advance();
+                if next == '&' {
+                    return Ok(simple_token(TokenType::And))
+                }
+
+                Err(format!("Unknown token {}", current_character))
+            }
+
+            '|' => {
+                let next = self.advance();
+                if next != '|' {
+                    return Err(format!("Unknown token '|' "));
+                }
+                Ok(simple_token(TokenType::Or))
+            }
 
             x if x.is_ascii_digit() => self.scan_number(),
             x if x.is_alphabetic() => self.scan_identifier(),
@@ -172,9 +171,15 @@ impl Scanner {
         let segment = &self.source[self.start..self.current];
 
         match segment {
-            "for" => Ok(Token { token_type: TokenType::For, object: object::Object::None }),
-            "while" => Ok(Token { token_type: TokenType::While, object: object::Object::None }),
-            "fn" =>  Ok(Token {token_type: TokenType::Fn, object: object::Object::None}), 
+            "for" => Ok(simple_token(TokenType::For)),
+            "while" => Ok(simple_token(TokenType::While)),
+            "fn" =>  Ok(simple_token(TokenType::Fn)),
+            "end" => Ok(simple_token(TokenType::End)),
+            "return" => Ok(simple_token(TokenType::Return)),
+            "true" => Ok(simple_token(TokenType::True)),
+            "false" => Ok(simple_token(TokenType::False)),
+            "and" => Ok(simple_token(TokenType::And)),
+            "or" => Ok(simple_token(TokenType::Or)),
 
             _ => {Ok(Token {
                 token_type: TokenType::Identifier,
@@ -241,7 +246,7 @@ mod tests {
 
     #[test]
     fn test_scanner_keywords() {
-        let source = "for while fn";
+        let source = "for while \n fn end";
         let tokens = Scanner::new().scan_tokens(source).unwrap();
         
         assert_eq!(
@@ -249,7 +254,9 @@ mod tests {
             vec![
                 Token{token_type: TokenType::For, object: Object::None},
                 Token{token_type: TokenType::While, object: Object::None},
+                Token{token_type: TokenType::NewLine, object: Object::None},
                 Token{token_type: TokenType::Fn, object: Object::None},
+                Token{token_type: TokenType::End, object: Object::None},
                 Token{token_type: TokenType::Eof, object: Object::None}
                 ])
     }
