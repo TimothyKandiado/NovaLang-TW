@@ -12,7 +12,7 @@ fn main() {
 fn repl() {
     loop {
         let mut input = String::new();
-        print!("{} ", ">>");
+        print!(">> ");
         io::stdout().flush().expect("Error writing to output");
         let input_result = io::stdin().read_line(&mut input);
         if input_result.is_err() {
@@ -27,7 +27,7 @@ fn repl() {
             break;
         }
 
-        let result = language::Scanner::new().scan_tokens(&input);
+        let result = language::Scanner::new().scan_tokens(input);
 
         if let Ok(answer) = result {
             println!("{:?}", answer);

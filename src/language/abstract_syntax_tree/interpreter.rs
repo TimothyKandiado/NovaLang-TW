@@ -110,6 +110,6 @@ impl ExpressionVisitor for AstInterpreter {
             return Ok(Object::Number(answer));
         }
 
-        return Err(format!("argument needs to be a number"));
+        Err("argument needs to be a number".to_string())
     }
 }

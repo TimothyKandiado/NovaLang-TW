@@ -73,7 +73,7 @@ impl Scanner {
             '|' => {
                 let next = self.advance();
                 if next != '|' {
-                    return Err(format!("Unknown token '|' "));
+                    return Err("Unknown token '|' ".to_string());
                 }
                 Ok(simple_token(TokenType::Or))
             }
