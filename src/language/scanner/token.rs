@@ -19,11 +19,13 @@ pub enum TokenType {
     NewLine,
     End,
     Return,
+    Assign,
 
     True,
     False,
     And,
     Or,
+    Not,
     EqualEqual,
     NotEqual,
     GreaterEqual,

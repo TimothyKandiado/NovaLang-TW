@@ -75,6 +75,39 @@ impl Scanner {
                 Ok(simple_token(TokenType::Or))
             }
 
+            '>' => {
+                if self.peek() == '=' {
+                    self.advance();
+                    return Ok(simple_token(TokenType::GreaterEqual))
+                }
+                Ok(simple_token(TokenType::Greater))
+            }
+
+            '<' => {
+                if self.peek() == '=' {
+                    self.advance();
+                    return Ok(simple_token(TokenType::LessEqual))
+                }
+                Ok(simple_token(TokenType::Less))
+            }
+
+            '=' => {
+                if self.peek() == '=' {
+                    self.advance();
+                    return Ok(simple_token(TokenType::EqualEqual))
+                }
+                Ok(simple_token(TokenType::Assign))
+            }
+
+            '!' => {
+                if self.peek() == '=' {
+                    self.advance();
+                    return Ok(simple_token(TokenType::NotEqual));
+                }
+
+                Ok(simple_token(TokenType::Not))
+            }
+
             x if x.is_ascii_digit() => self.scan_number(),
             x if x.is_alphabetic() => self.scan_identifier(),
 
@@ -216,7 +249,7 @@ mod tests {
     use crate::language::scanner::token::Token;
     use crate::language::scanner::token::TokenType;
 
-    use super::Scanner;
+    use super::{Scanner, simple_token};
 
     #[test]
     fn test_scanner_number() {
@@ -278,6 +311,41 @@ mod tests {
                 Token{token_type: TokenType::Plus, object: Object::None},
                 Token{token_type: TokenType::Number, object: Object::Number(1.0)},
                 Token{token_type: TokenType::RightParen, object: Object::None},
+                Token{token_type: TokenType::Eof, object: Object::None}
+                ])
+    }
+
+    #[test]
+    fn test_scanner_comparison_operators() {
+        let source = "== >= <= > < !=";
+        let tokens = Scanner::new().scan_tokens(source).unwrap();
+        
+        assert_eq!(
+            tokens, 
+            vec![
+                simple_token(TokenType::EqualEqual),
+                simple_token(TokenType::GreaterEqual),
+                simple_token(TokenType::LessEqual),
+                simple_token(TokenType::Greater),
+                simple_token(TokenType::Less),
+                simple_token(TokenType::NotEqual),
+                Token{token_type: TokenType::Eof, object: Object::None}
+                ])
+    }
+
+    #[test]
+    fn test_scanner_logical_operators() {
+        let source = "&& || ! and or";
+        let tokens = Scanner::new().scan_tokens(source).unwrap();
+        
+        assert_eq!(
+            tokens, 
+            vec![
+                simple_token(TokenType::And),
+                simple_token(TokenType::Or),
+                simple_token(TokenType::Not),
+                simple_token(TokenType::And),
+                simple_token(TokenType::Or),
                 Token{token_type: TokenType::Eof, object: Object::None}
                 ])
     }
