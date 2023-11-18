@@ -84,7 +84,7 @@ impl ExpressionVisitor for AstToBytecode {
 
     fn visit_math_function(
         &self,
-        math_function: &crate::language::abstract_syntax_tree::expression::math_function::MathFunction,
+        _math_function: &crate::language::abstract_syntax_tree::expression::math_function::MathFunction,
     ) -> Self::Output {
         todo!()
     }

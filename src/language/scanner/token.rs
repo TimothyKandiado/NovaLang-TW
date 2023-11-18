@@ -31,7 +31,7 @@ pub enum TokenType {
     GreaterEqual,
     LessEqual,
     Greater,
-    Less
+    Less,
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]

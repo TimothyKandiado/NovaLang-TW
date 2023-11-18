@@ -4,7 +4,10 @@ pub mod token;
 use token::{Token, TokenType};
 
 fn simple_token(token_type: TokenType) -> Token {
-    Token { token_type, object: object::Object::None }
+    Token {
+        token_type,
+        object: object::Object::None,
+    }
 }
 
 pub struct Scanner {
@@ -61,7 +64,7 @@ impl Scanner {
             '&' => {
                 let next = self.advance();
                 if next == '&' {
-                    return Ok(simple_token(TokenType::And))
+                    return Ok(simple_token(TokenType::And));
                 }
 
                 Err(format!("Unknown token {}", current_character))
@@ -78,7 +81,7 @@ impl Scanner {
             '>' => {
                 if self.peek() == '=' {
                     self.advance();
-                    return Ok(simple_token(TokenType::GreaterEqual))
+                    return Ok(simple_token(TokenType::GreaterEqual));
                 }
                 Ok(simple_token(TokenType::Greater))
             }
@@ -86,7 +89,7 @@ impl Scanner {
             '<' => {
                 if self.peek() == '=' {
                     self.advance();
-                    return Ok(simple_token(TokenType::LessEqual))
+                    return Ok(simple_token(TokenType::LessEqual));
                 }
                 Ok(simple_token(TokenType::Less))
             }
@@ -94,7 +97,7 @@ impl Scanner {
             '=' => {
                 if self.peek() == '=' {
                     self.advance();
-                    return Ok(simple_token(TokenType::EqualEqual))
+                    return Ok(simple_token(TokenType::EqualEqual));
                 }
                 Ok(simple_token(TokenType::Assign))
             }
@@ -132,9 +135,11 @@ impl Scanner {
         }
 
         if has_consumed_newline {
-            Some(Token { token_type: TokenType::NewLine, object: object::Object::None })
-        }
-        else {
+            Some(Token {
+                token_type: TokenType::NewLine,
+                object: object::Object::None,
+            })
+        } else {
             None
         }
     }
@@ -206,7 +211,7 @@ impl Scanner {
         match segment {
             "for" => Ok(simple_token(TokenType::For)),
             "while" => Ok(simple_token(TokenType::While)),
-            "fn" =>  Ok(simple_token(TokenType::Fn)),
+            "fn" => Ok(simple_token(TokenType::Fn)),
             "end" => Ok(simple_token(TokenType::End)),
             "return" => Ok(simple_token(TokenType::Return)),
             "true" => Ok(simple_token(TokenType::True)),
@@ -214,10 +219,10 @@ impl Scanner {
             "and" => Ok(simple_token(TokenType::And)),
             "or" => Ok(simple_token(TokenType::Or)),
 
-            _ => {Ok(Token {
+            _ => Ok(Token {
                 token_type: TokenType::Identifier,
                 object: object::Object::String(segment.to_string()),
-            })}
+            }),
         }
     }
 
@@ -249,7 +254,7 @@ mod tests {
     use crate::language::scanner::token::Token;
     use crate::language::scanner::token::TokenType;
 
-    use super::{Scanner, simple_token};
+    use super::{simple_token, Scanner};
 
     #[test]
     fn test_scanner_number() {
@@ -257,71 +262,135 @@ mod tests {
         let tokens = Scanner::new().scan_tokens(source).unwrap();
 
         assert_eq!(
-            tokens, 
+            tokens,
             vec![
-                Token{token_type: TokenType::Number, object: Object::Number(100.0)},
-                Token{token_type: TokenType::Eof, object: Object::None}
-                ])
+                Token {
+                    token_type: TokenType::Number,
+                    object: Object::Number(100.0)
+                },
+                Token {
+                    token_type: TokenType::Eof,
+                    object: Object::None
+                }
+            ]
+        )
     }
 
     #[test]
     fn test_scanner_identifier() {
         let source = "sin";
         let tokens = Scanner::new().scan_tokens(source).unwrap();
-        
+
         assert_eq!(
-            tokens, 
+            tokens,
             vec![
-                Token{token_type: TokenType::Identifier, object: Object::String("sin".to_string())},
-                Token{token_type: TokenType::Eof, object: Object::None}
-                ])
+                Token {
+                    token_type: TokenType::Identifier,
+                    object: Object::String("sin".to_string())
+                },
+                Token {
+                    token_type: TokenType::Eof,
+                    object: Object::None
+                }
+            ]
+        )
     }
 
     #[test]
     fn test_scanner_keywords() {
         let source = "for while \n fn end";
         let tokens = Scanner::new().scan_tokens(source).unwrap();
-        
+
         assert_eq!(
-            tokens, 
+            tokens,
             vec![
-                Token{token_type: TokenType::For, object: Object::None},
-                Token{token_type: TokenType::While, object: Object::None},
-                Token{token_type: TokenType::NewLine, object: Object::None},
-                Token{token_type: TokenType::Fn, object: Object::None},
-                Token{token_type: TokenType::End, object: Object::None},
-                Token{token_type: TokenType::Eof, object: Object::None}
-                ])
+                Token {
+                    token_type: TokenType::For,
+                    object: Object::None
+                },
+                Token {
+                    token_type: TokenType::While,
+                    object: Object::None
+                },
+                Token {
+                    token_type: TokenType::NewLine,
+                    object: Object::None
+                },
+                Token {
+                    token_type: TokenType::Fn,
+                    object: Object::None
+                },
+                Token {
+                    token_type: TokenType::End,
+                    object: Object::None
+                },
+                Token {
+                    token_type: TokenType::Eof,
+                    object: Object::None
+                }
+            ]
+        )
     }
 
     #[test]
     fn test_scanner_simple_expression() {
         let source = "1 + 2 / ( 3 + 1 )";
         let tokens = Scanner::new().scan_tokens(source).unwrap();
-        
+
         assert_eq!(
-            tokens, 
+            tokens,
             vec![
-                Token{token_type: TokenType::Number, object: Object::Number(1.0)},
-                Token{token_type: TokenType::Plus, object: Object::None},
-                Token{token_type: TokenType::Number, object: Object::Number(2.0)},
-                Token{token_type: TokenType::Slash, object: Object::None},
-                Token{token_type: TokenType::LeftParen, object: Object::None},
-                Token{token_type: TokenType::Number, object: Object::Number(3.0)},
-                Token{token_type: TokenType::Plus, object: Object::None},
-                Token{token_type: TokenType::Number, object: Object::Number(1.0)},
-                Token{token_type: TokenType::RightParen, object: Object::None},
-                Token{token_type: TokenType::Eof, object: Object::None}
-                ])
+                Token {
+                    token_type: TokenType::Number,
+                    object: Object::Number(1.0)
+                },
+                Token {
+                    token_type: TokenType::Plus,
+                    object: Object::None
+                },
+                Token {
+                    token_type: TokenType::Number,
+                    object: Object::Number(2.0)
+                },
+                Token {
+                    token_type: TokenType::Slash,
+                    object: Object::None
+                },
+                Token {
+                    token_type: TokenType::LeftParen,
+                    object: Object::None
+                },
+                Token {
+                    token_type: TokenType::Number,
+                    object: Object::Number(3.0)
+                },
+                Token {
+                    token_type: TokenType::Plus,
+                    object: Object::None
+                },
+                Token {
+                    token_type: TokenType::Number,
+                    object: Object::Number(1.0)
+                },
+                Token {
+                    token_type: TokenType::RightParen,
+                    object: Object::None
+                },
+                Token {
+                    token_type: TokenType::Eof,
+                    object: Object::None
+                }
+            ]
+        )
     }
 
     #[test]
     fn test_scanner_comparison_operators() {
         let source = "== >= <= > < !=";
         let tokens = Scanner::new().scan_tokens(source).unwrap();
-        
+
         assert_eq!(
-            tokens, 
+            tokens,
             vec![
                 simple_token(TokenType::EqualEqual),
                 simple_token(TokenType::GreaterEqual),
@@ -329,24 +398,32 @@ mod tests {
                 simple_token(TokenType::Greater),
                 simple_token(TokenType::Less),
                 simple_token(TokenType::NotEqual),
-                Token{token_type: TokenType::Eof, object: Object::None}
-                ])
+                Token {
+                    token_type: TokenType::Eof,
+                    object: Object::None
+                }
+            ]
+        )
     }
 
     #[test]
     fn test_scanner_logical_operators() {
         let source = "&& || ! and or";
         let tokens = Scanner::new().scan_tokens(source).unwrap();
-        
+
         assert_eq!(
-            tokens, 
+            tokens,
             vec![
                 simple_token(TokenType::And),
                 simple_token(TokenType::Or),
                 simple_token(TokenType::Not),
                 simple_token(TokenType::And),
                 simple_token(TokenType::Or),
-                Token{token_type: TokenType::Eof, object: Object::None}
-                ])
+                Token {
+                    token_type: TokenType::Eof,
+                    object: Object::None
+                }
+            ]
+        )
     }
 }

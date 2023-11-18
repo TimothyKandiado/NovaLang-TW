@@ -125,9 +125,9 @@ impl AstParser {
         &self.tokens[self.current]
     }
 
-    fn peek_next(&self) -> Option<&Token> {
+    /* fn peek_next(&self) -> Option<&Token> {
         self.tokens.get(self.current + 1)
-    }
+    } */
 
     fn previous(&self) -> &Token {
         &self.tokens[self.current - 1]

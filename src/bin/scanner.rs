@@ -1,8 +1,8 @@
-use tim::language;
 use std::{
     io::{self, Write},
     process::exit,
 };
+use tim::language;
 
 fn main() {
     println!("function of this program is to scan input and return the generated tokens");

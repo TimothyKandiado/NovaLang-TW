@@ -14,7 +14,7 @@ impl Display for Object {
             Self::None => "None".to_string(),
             Self::Number(number) => number.to_string(),
             Self::String(string) => string.clone(),
-            Self::Bool(boolean) => boolean.to_string()
+            Self::Bool(boolean) => boolean.to_string(),
         };
 
         write!(f, "{}", description)

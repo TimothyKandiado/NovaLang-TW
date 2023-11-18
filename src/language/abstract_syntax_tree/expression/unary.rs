@@ -1,6 +1,4 @@
-use crate::language::{
-    abstract_syntax_tree::visitor::ExpressionVisitor, scanner::token::Token,
-};
+use crate::language::{abstract_syntax_tree::visitor::ExpressionVisitor, scanner::token::Token};
 
 use super::Expression;
 

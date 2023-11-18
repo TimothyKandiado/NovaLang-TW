@@ -1,6 +1,4 @@
-use crate::language::{
-    abstract_syntax_tree::visitor::ExpressionVisitor, scanner::object::Object,
-};
+use crate::language::{abstract_syntax_tree::visitor::ExpressionVisitor, scanner::object::Object};
 
 #[derive(Debug)]
 pub struct Literal {
