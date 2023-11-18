@@ -17,6 +17,12 @@ pub struct Scanner {
     current: usize,
 }
 
+impl Default for Scanner {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Scanner {
     pub fn new() -> Self {
         Self {
