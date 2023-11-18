@@ -1,5 +1,5 @@
 use super::Expression;
-use crate::interpreter::{
+use crate::language::{
     abstract_syntax_tree::visitor::ExpressionVisitor, scanner::object::Object,
 };
 

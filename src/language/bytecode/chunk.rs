@@ -1,4 +1,4 @@
-use crate::interpreter::scanner::object::Object;
+use crate::language::scanner::object::Object;
 
 use super::code::OpCode;
 

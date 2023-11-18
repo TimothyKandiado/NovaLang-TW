@@ -1,4 +1,4 @@
-use crate::interpreter::{
+use crate::language::{
     abstract_syntax_tree::{expression::Expression, visitor::ExpressionVisitor},
     scanner::token::TokenType,
 };
@@ -24,7 +24,7 @@ impl ExpressionVisitor for AstToBytecode {
 
     fn visit_binary(
         &self,
-        binary: &crate::interpreter::abstract_syntax_tree::expression::binary::Binary,
+        binary: &crate::language::abstract_syntax_tree::expression::binary::Binary,
     ) -> Self::Output {
         let mut left = self.evaluate(&binary.left)?;
         let right = self.evaluate(&binary.right)?;
@@ -34,7 +34,7 @@ impl ExpressionVisitor for AstToBytecode {
         match binary.operator.token_type {
             TokenType::Plus => left.instructions.push(OpCode::Add),
             TokenType::Minus => left.instructions.push(OpCode::Subtract),
-            TokenType::Divide => left.instructions.push(OpCode::Divide),
+            TokenType::Slash => left.instructions.push(OpCode::Divide),
             TokenType::Star => left.instructions.push(OpCode::Multiply),
 
             _ => return Err("unknown binary operator".to_string()),
@@ -45,7 +45,7 @@ impl ExpressionVisitor for AstToBytecode {
 
     fn visit_unary(
         &self,
-        unary: &crate::interpreter::abstract_syntax_tree::expression::unary::Unary,
+        unary: &crate::language::abstract_syntax_tree::expression::unary::Unary,
     ) -> Self::Output {
         let mut right = self.evaluate(&unary.right)?;
 
@@ -65,14 +65,14 @@ impl ExpressionVisitor for AstToBytecode {
 
     fn visit_grouping(
         &self,
-        grouping: &crate::interpreter::abstract_syntax_tree::expression::grouping::Grouping,
+        grouping: &crate::language::abstract_syntax_tree::expression::grouping::Grouping,
     ) -> Self::Output {
         self.evaluate(&grouping.expression)
     }
 
     fn visit_literal(
         &self,
-        literal: &crate::interpreter::abstract_syntax_tree::expression::literal::Literal,
+        literal: &crate::language::abstract_syntax_tree::expression::literal::Literal,
     ) -> Self::Output {
         let object = literal.object.clone();
 
@@ -84,7 +84,7 @@ impl ExpressionVisitor for AstToBytecode {
 
     fn visit_math_function(
         &self,
-        math_function: &crate::interpreter::abstract_syntax_tree::expression::math_function::MathFunction,
+        math_function: &crate::language::abstract_syntax_tree::expression::math_function::MathFunction,
     ) -> Self::Output {
         todo!()
     }

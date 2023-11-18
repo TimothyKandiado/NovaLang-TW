@@ -3,7 +3,7 @@ use std::{
     process::exit,
 };
 
-use simple_interpreter::interpreter;
+use tim::language;
 
 const PROMPT: &str = ">>";
 fn main() {
@@ -28,7 +28,7 @@ fn repl() {
             break;
         }
 
-        let result = interpreter::interpret(input);
+        let result = language::interpret(input);
         if let Ok(answer) = result {
             println!("{}", answer);
         } else {

@@ -1,4 +1,4 @@
-use crate::interpreter::scanner::token::{Token, TokenType};
+use crate::language::scanner::token::{Token, TokenType};
 
 use super::expression::{
     binary::Binary, grouping::Grouping, literal::Literal, math_function::MathFunction,
@@ -35,7 +35,7 @@ impl AstParser {
     fn multiplication(&mut self) -> Result<Expression, String> {
         let mut expression = self.unary()?;
 
-        while self.match_tokens(&[TokenType::Star, TokenType::Divide]) {
+        while self.match_tokens(&[TokenType::Star, TokenType::Slash]) {
             let operator = self.previous().to_owned();
             let right = self.unary()?;
 

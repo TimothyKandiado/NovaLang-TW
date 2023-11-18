@@ -1,4 +1,4 @@
-use crate::interpreter::abstract_syntax_tree::visitor::ExpressionVisitor;
+use crate::language::abstract_syntax_tree::visitor::ExpressionVisitor;
 
 use super::Expression;
 

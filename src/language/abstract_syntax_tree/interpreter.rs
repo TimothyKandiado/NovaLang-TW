@@ -1,5 +1,5 @@
 use super::{expression::Expression, visitor::ExpressionVisitor};
-use crate::interpreter::scanner::{object::Object, token::TokenType};
+use crate::language::scanner::{object::Object, token::TokenType};
 
 /// A simple abstract syntax tree interpreter
 pub struct AstInterpreter {}
@@ -40,7 +40,7 @@ impl ExpressionVisitor for AstInterpreter {
                 Err("Cannot subtract non numbers".to_string())
             }
 
-            TokenType::Divide => {
+            TokenType::Slash => {
                 if let (Object::Number(left), Object::Number(right)) = (left, right) {
                     return Ok(Object::Number(left / right));
                 }

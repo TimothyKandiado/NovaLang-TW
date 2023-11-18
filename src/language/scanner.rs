@@ -37,7 +37,11 @@ impl Scanner {
     }
 
     fn scan_token(&mut self) -> Result<Token, String> {
-        self.skip_whitespace();
+        let newline_token = self.skip_whitespace();
+        if let Some(newline) = newline_token {
+            return Ok(newline);
+        }
+
         self.start = self.current;
         let current_character = self.advance();
 
@@ -55,7 +59,7 @@ impl Scanner {
                 object: object::Object::None,
             }),
             '/' => Ok(Token {
-                token_type: TokenType::Divide,
+                token_type: TokenType::Slash,
                 object: object::Object::None,
             }),
 
@@ -67,16 +71,25 @@ impl Scanner {
                 token_type: TokenType::RightParen,
                 object: object::Object::None,
             }),
+            ':' => Ok(Token { 
+                token_type: TokenType::Colon, 
+                object: object::Object::None 
+            }),
 
             x if x.is_ascii_digit() => self.scan_number(),
-            x if x.is_alphabetic() => self.scan_string(),
+            x if x.is_alphabetic() => self.scan_identifier(),
 
             _ => Err(format!("Undefined character {}", current_character)),
         }
     }
 
-    fn skip_whitespace(&mut self) {
+    fn skip_whitespace(&mut self) -> Option<Token> {
+        let mut has_consumed_newline = false;
+
         while !self.is_at_end() {
+            if !has_consumed_newline && self.peek() == '\n' {
+                has_consumed_newline = true;
+            }
             match self.peek() {
                 ' ' | '\n' | '\r' => {
                     self.advance();
@@ -84,6 +97,13 @@ impl Scanner {
 
                 _ => break,
             }
+        }
+
+        if has_consumed_newline {
+            Some(Token { token_type: TokenType::NewLine, object: object::Object::None })
+        }
+        else {
+            None
         }
     }
 
@@ -144,17 +164,23 @@ impl Scanner {
         }
     }
 
-    fn scan_string(&mut self) -> Result<Token, String> {
+    fn scan_identifier(&mut self) -> Result<Token, String> {
         while !self.is_at_end() && self.peek().is_alphabetic() {
             self.advance();
         }
 
         let segment = &self.source[self.start..self.current];
 
-        Ok(Token {
-            token_type: TokenType::Identifier,
-            object: object::Object::String(segment.to_string()),
-        })
+        match segment {
+            "for" => Ok(Token { token_type: TokenType::For, object: object::Object::None }),
+            "while" => Ok(Token { token_type: TokenType::While, object: object::Object::None }),
+            "fn" =>  Ok(Token {token_type: TokenType::Fn, object: object::Object::None}), 
+
+            _ => {Ok(Token {
+                token_type: TokenType::Identifier,
+                object: object::Object::String(segment.to_string()),
+            })}
+        }
     }
 
     fn peek(&self) -> char {
@@ -164,14 +190,6 @@ impl Scanner {
 
         self.source.chars().nth(self.current).unwrap()
     }
-
-    /* fn peek_next(&self) -> char {
-        if self.is_at_end() || self.current + 1 >= self.source.len() {
-            return '\0'
-        }
-
-        self.source.chars().nth(self.current + 1).unwrap()
-    } */
 
     fn advance(&mut self) -> char {
         if self.is_at_end() {
@@ -184,5 +202,76 @@ impl Scanner {
 
     fn is_at_end(&self) -> bool {
         self.current >= self.source.len()
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use crate::language::scanner::object::Object;
+    use crate::language::scanner::token::Token;
+    use crate::language::scanner::token::TokenType;
+
+    use super::Scanner;
+
+    #[test]
+    fn test_scanner_number() {
+        let source = "100";
+        let tokens = Scanner::new().scan_tokens(source).unwrap();
+
+        assert_eq!(
+            tokens, 
+            vec![
+                Token{token_type: TokenType::Number, object: Object::Number(100.0)},
+                Token{token_type: TokenType::Eof, object: Object::None}
+                ])
+    }
+
+    #[test]
+    fn test_scanner_identifier() {
+        let source = "sin";
+        let tokens = Scanner::new().scan_tokens(source).unwrap();
+        
+        assert_eq!(
+            tokens, 
+            vec![
+                Token{token_type: TokenType::Identifier, object: Object::String("sin".to_string())},
+                Token{token_type: TokenType::Eof, object: Object::None}
+                ])
+    }
+
+    #[test]
+    fn test_scanner_keywords() {
+        let source = "for while fn";
+        let tokens = Scanner::new().scan_tokens(source).unwrap();
+        
+        assert_eq!(
+            tokens, 
+            vec![
+                Token{token_type: TokenType::For, object: Object::None},
+                Token{token_type: TokenType::While, object: Object::None},
+                Token{token_type: TokenType::Fn, object: Object::None},
+                Token{token_type: TokenType::Eof, object: Object::None}
+                ])
+    }
+
+    #[test]
+    fn test_scanner_simple_expression() {
+        let source = "1 + 2 / ( 3 + 1 )";
+        let tokens = Scanner::new().scan_tokens(source).unwrap();
+        
+        assert_eq!(
+            tokens, 
+            vec![
+                Token{token_type: TokenType::Number, object: Object::Number(1.0)},
+                Token{token_type: TokenType::Plus, object: Object::None},
+                Token{token_type: TokenType::Number, object: Object::Number(2.0)},
+                Token{token_type: TokenType::Slash, object: Object::None},
+                Token{token_type: TokenType::LeftParen, object: Object::None},
+                Token{token_type: TokenType::Number, object: Object::Number(3.0)},
+                Token{token_type: TokenType::Plus, object: Object::None},
+                Token{token_type: TokenType::Number, object: Object::Number(1.0)},
+                Token{token_type: TokenType::RightParen, object: Object::None},
+                Token{token_type: TokenType::Eof, object: Object::None}
+                ])
     }
 }

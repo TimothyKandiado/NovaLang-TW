@@ -1,19 +1,26 @@
 use super::object::Object;
 
-#[derive(Debug, Clone, Copy, PartialEq)]
+#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub enum TokenType {
     Number,
     Plus,
     Minus,
     Star,
-    Divide,
+    Slash,
+    Colon,
     LeftParen,
     RightParen,
     Identifier,
     Eof,
+
+    Fn,
+    For,
+    While,
+    NewLine,
+    End,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct Token {
     pub token_type: TokenType,
     pub object: Object,
