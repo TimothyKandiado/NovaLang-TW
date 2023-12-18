@@ -1,20 +1,19 @@
-pub mod if_statement;
-pub mod block;
-pub mod while_loop;
 pub mod assignment;
-pub mod function;
+pub mod block;
 pub mod declaration;
+pub mod function;
+pub mod if_statement;
+pub mod while_loop;
 
+pub use block::Block;
 pub use if_statement::IfStatement;
 pub use while_loop::WhileLoop;
-pub use block::Block;
 
 use crate::language::errors;
 
-use self::{function::FunctionStatement, declaration::VariableDeclaration};
+use self::{declaration::VariableDeclaration, function::FunctionStatement};
 
 use super::{expression::Expression, visitor::StatementVisitor};
-
 
 #[derive(Debug, Clone)]
 pub enum Statement {
@@ -25,7 +24,7 @@ pub enum Statement {
     FunctionStatement(Box<FunctionStatement>),
     ReturnStatement(Option<Expression>),
     VariableDeclaration(VariableDeclaration),
-    ExpressionStatement(Expression)
+    ExpressionStatement(Expression),
 }
 
 impl Statement {
@@ -35,10 +34,16 @@ impl Statement {
             Self::If(if_statement) => visitor.visit_if(if_statement),
             Self::WhileLoop(while_loop) => visitor.visit_while(while_loop),
             Self::Block(block) => visitor.visit_block(block),
-            Self::FunctionStatement(function_statement) => visitor.visit_function_statement(function_statement),
+            Self::FunctionStatement(function_statement) => {
+                visitor.visit_function_statement(function_statement)
+            }
             Self::ReturnStatement(return_values) => visitor.visit_return(return_values),
-            Self::VariableDeclaration(var_declaration) => visitor.visit_var_declaration(var_declaration),
-            Self::ExpressionStatement(expression_statement) => visitor.visit_expression_statement(expression_statement)
+            Self::VariableDeclaration(var_declaration) => {
+                visitor.visit_var_declaration(var_declaration)
+            }
+            Self::ExpressionStatement(expression_statement) => {
+                visitor.visit_expression_statement(expression_statement)
+            }
         }
     }
 }

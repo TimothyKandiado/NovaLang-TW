@@ -1,9 +1,20 @@
-use crate::language::{scanner::token::{Token, TokenType}, errors};
+use crate::language::{
+    errors,
+    scanner::token::{Token, TokenType},
+};
 
-use super::{expression::{
-    binary::Binary, grouping::Grouping, literal::Literal, function_call::FunctionCall,
-    unary::Unary, Expression,
-}, statement::{Statement, Block, IfStatement, WhileLoop, function::FunctionStatement, declaration::VariableDeclaration, assignment::{Assign, Set}}};
+use super::{
+    expression::{
+        binary::Binary, function_call::FunctionCall, grouping::Grouping, literal::Literal,
+        unary::Unary, Expression,
+    },
+    statement::{
+        assignment::{Assign, Set},
+        declaration::VariableDeclaration,
+        function::FunctionStatement,
+        Block, IfStatement, Statement, WhileLoop,
+    },
+};
 
 /// parses an abstract syntax tree from generated tokens
 pub struct AstParser {
@@ -11,9 +22,9 @@ pub struct AstParser {
     current: usize,
 }
 
-const MAX_PARAMETERS : usize = 8;
+const MAX_PARAMETERS: usize = 8;
 
-impl AstParser { 
+impl AstParser {
     pub fn new(tokens: Vec<Token>) -> Self {
         Self { tokens, current: 0 }
     }
@@ -25,27 +36,21 @@ impl AstParser {
             if let Statement::None = statement {
                 continue;
             }
-            
+
             statements.push(statement)
         }
-        return Ok(statements)
+        return Ok(statements);
     }
 
     fn declaration(&mut self) -> Statement {
         let result = {
             if self.match_tokens(&[TokenType::Class]) {
                 self.class_declaration()
-            }
-
-            else if self.match_tokens(&[TokenType::Fn]) {
+            } else if self.match_tokens(&[TokenType::Fn]) {
                 self.function_declaration("function")
-            }
-
-            else if self.match_tokens(&[TokenType::Let]) {
+            } else if self.match_tokens(&[TokenType::Let]) {
                 self.var_declaration()
-            }
-
-            else {
+            } else {
                 self.statement()
             }
         };
@@ -53,7 +58,7 @@ impl AstParser {
         if result.is_err() {
             self.synchronize();
             let err = result.unwrap_err();
-            println!("{}",err);
+            println!("{}", err);
 
             return Statement::None;
         }
@@ -66,7 +71,9 @@ impl AstParser {
     }
 
     fn var_declaration(&mut self) -> Result<Statement, errors::Error> {
-        let name = self.consume(TokenType::Identifier, "Expect variable name")?.clone();
+        let name = self
+            .consume(TokenType::Identifier, "Expect variable name")?
+            .clone();
 
         let mut initializer = None;
 
@@ -74,14 +81,15 @@ impl AstParser {
             initializer = Some(self.expression()?);
         }
 
-        self.consume(TokenType::NewLine, "Expected new line after variable declaration")?;
-        
-        Ok(Statement::VariableDeclaration(
-                VariableDeclaration {
-                    name,
-                    initializer
-                }
-        ))
+        self.consume(
+            TokenType::NewLine,
+            "Expected new line after variable declaration",
+        )?;
+
+        Ok(Statement::VariableDeclaration(VariableDeclaration {
+            name,
+            initializer,
+        }))
     }
 
     fn function_declaration(&mut self, kind: &str) -> Result<Statement, errors::Error> {
@@ -93,58 +101,57 @@ impl AstParser {
         if !self.check(TokenType::RightParen) {
             loop {
                 if parameters.len() > MAX_PARAMETERS {
-                    return Err(errors::Error::ParseError(format!("Cannot have more than {} parameters", MAX_PARAMETERS)));
+                    return Err(errors::Error::ParseError(format!(
+                        "Cannot have more than {} parameters",
+                        MAX_PARAMETERS
+                    )));
                 }
 
                 let parameter = self.consume(TokenType::Identifier, "Expect parameter name")?;
                 parameters.push(parameter.clone());
 
                 if !self.match_tokens(&[TokenType::Comma]) {
-                    break
+                    break;
                 }
             }
         }
 
         self.consume(TokenType::RightParen, "Expect ')' after parameters")?;
-        self.consume(TokenType::NewLine, "Expect newline after function parameters")?;
+        self.consume(
+            TokenType::NewLine,
+            "Expect newline after function parameters",
+        )?;
         let body = self.block_statement(&[TokenType::End], true)?;
 
-        return Ok(
-            Statement::FunctionStatement(
-                Box::new(
-                    FunctionStatement {
-                        name,
-                        parameters,
-                        body
-                    }
-                )
-            )
-        )
+        return Ok(Statement::FunctionStatement(Box::new(FunctionStatement {
+            name,
+            parameters,
+            body,
+        })));
     }
 
     fn statement(&mut self) -> Result<Statement, errors::Error> {
         if self.match_tokens(&[TokenType::For]) {
-            return self.for_statement()
+            return self.for_statement();
         }
 
         if self.match_tokens(&[TokenType::If]) {
-            return self.if_statement()
+            return self.if_statement();
         }
 
         if self.match_tokens(&[TokenType::Return]) {
-            return self.return_statement()
+            return self.return_statement();
         }
 
         if self.match_tokens(&[TokenType::While]) {
-            return self.while_statement()
+            return self.while_statement();
         }
 
         if self.match_tokens(&[TokenType::Block]) {
-            return self.block_statement(&[TokenType::End], true)
+            return self.block_statement(&[TokenType::End], true);
         }
 
-
-        return self.expression_statement()
+        return self.expression_statement();
     }
 
     fn for_statement(&mut self) -> Result<Statement, errors::Error> {
@@ -152,32 +159,27 @@ impl AstParser {
     }
 
     fn if_statement(&mut self) -> Result<Statement, errors::Error> {
-       //self.consume(TokenType::LeftParen, "Expected '(' after if")?;
-       let condition = self.expression()?;
-       //self.consume(TokenType::RightParen, "Expect ')' after condition")?;
+        //self.consume(TokenType::LeftParen, "Expected '(' after if")?;
+        let condition = self.expression()?;
+        //self.consume(TokenType::RightParen, "Expect ')' after condition")?;
 
-       //self.consume(TokenType::NewLine, "Expect new line after condition")?;
+        //self.consume(TokenType::NewLine, "Expect new line after condition")?;
 
-       let then_branch = self.block_statement(&[TokenType::End, TokenType::Else], false)?;
-       let mut else_branch = None;
+        let then_branch = self.block_statement(&[TokenType::End, TokenType::Else], false)?;
+        let mut else_branch = None;
 
-       if self.match_tokens(&[TokenType::Else]) {
+        if self.match_tokens(&[TokenType::Else]) {
             else_branch = Some(self.block_statement(&[TokenType::End], true)?)
-       }
-       else {
+        } else {
             self.consume(TokenType::End, "Expected end after if block")?;
             self.consume(TokenType::NewLine, "Expect new line after end")?;
-       }
+        }
 
-       return Ok(
-            Statement::If( Box::new(
-                IfStatement {
-                    condition,
-                    then_branch,
-                    else_branch
-                }
-            ))
-       )
+        return Ok(Statement::If(Box::new(IfStatement {
+            condition,
+            then_branch,
+            else_branch,
+        })));
     }
 
     fn return_statement(&mut self) -> Result<Statement, errors::Error> {
@@ -189,7 +191,7 @@ impl AstParser {
             value = Some(self.expression()?);
         }
 
-        return Ok(Statement::ReturnStatement(value))
+        return Ok(Statement::ReturnStatement(value));
     }
 
     fn while_statement(&mut self) -> Result<Statement, errors::Error> {
@@ -199,20 +201,17 @@ impl AstParser {
         self.consume(TokenType::NewLine, "Expect new line after condition")?;
 
         let body = self.block_statement(&[TokenType::End], true)?;
-        return Ok(
-            Statement::WhileLoop(
-                Box::new(
-                    WhileLoop {
-                        condition,
-                        body
-                    }
-                )
-            )
-        )
-
+        return Ok(Statement::WhileLoop(Box::new(WhileLoop {
+            condition,
+            body,
+        })));
     }
 
-    fn block_statement(&mut self, end_tokens: &[TokenType], consume: bool) -> Result<Statement, errors::Error> {
+    fn block_statement(
+        &mut self,
+        end_tokens: &[TokenType],
+        consume: bool,
+    ) -> Result<Statement, errors::Error> {
         let mut statements = Vec::new();
         self.consume(TokenType::NewLine, "Expect new line before block")?;
 
@@ -227,9 +226,7 @@ impl AstParser {
             self.consume(TokenType::NewLine, "expect newline after block")?;
         }
 
-        return Ok(Statement::Block(Block {
-            statements
-        }))
+        return Ok(Statement::Block(Block { statements }));
     }
 
     fn expression_statement(&mut self) -> Result<Statement, errors::Error> {
@@ -248,8 +245,14 @@ impl AstParser {
             }
 
             match self.peek().token_type {
-                TokenType::Class | TokenType::Fn | TokenType::Let | TokenType::For | TokenType::If | TokenType::While | TokenType::Return => return,
-                
+                TokenType::Class
+                | TokenType::Fn
+                | TokenType::Let
+                | TokenType::For
+                | TokenType::If
+                | TokenType::While
+                | TokenType::Return => return,
+
                 _ => {}
             }
 
@@ -270,31 +273,18 @@ impl AstParser {
 
             if let Expression::Variable(variable) = &expression {
                 let name = variable.name.clone();
-                return Ok(Expression::Assign(
-                    Box::new(
-                        Assign {
-                            name,
-                            value
-                        }
-                    )
-                ))
-            }
-
-            else if let Expression::Get(get) = &expression {
+                return Ok(Expression::Assign(Box::new(Assign { name, value })));
+            } else if let Expression::Get(get) = &expression {
                 let get = *get.clone();
 
-                return Ok(
-                    Expression::Set(Box::new(
-                        Set {
-                            name: get.name,
-                            object: get.object,
-                            value
-                        }
-                    ))
-                )
+                return Ok(Expression::Set(Box::new(Set {
+                    name: get.name,
+                    object: get.object,
+                    value,
+                })));
             }
 
-            return Err(self.error(&equals, "Invalid Assignment Target"))
+            return Err(self.error(&equals, "Invalid Assignment Target"));
         }
 
         Ok(expression)
@@ -307,15 +297,15 @@ impl AstParser {
             let operator = self.previous().clone();
             let right = self.and()?;
 
-            let binary = Expression::Binary(
-                Box::new(
-                    Binary { left: expression, right, operator }
-                )
-            );
-            return Ok(binary)
+            let binary = Expression::Binary(Box::new(Binary {
+                left: expression,
+                right,
+                operator,
+            }));
+            return Ok(binary);
         }
 
-        Ok(expression)    
+        Ok(expression)
     }
 
     fn and(&mut self) -> Result<Expression, errors::Error> {
@@ -325,15 +315,15 @@ impl AstParser {
             let operator = self.previous().clone();
             let right = self.equality()?;
 
-            let binary = Expression::Binary(
-                Box::new(
-                    Binary { left: expression, right, operator }
-                )
-            );
-            return Ok(binary)
+            let binary = Expression::Binary(Box::new(Binary {
+                left: expression,
+                right,
+                operator,
+            }));
+            return Ok(binary);
         }
 
-        Ok(expression) 
+        Ok(expression)
     }
 
     fn equality(&mut self) -> Result<Expression, errors::Error> {
@@ -343,33 +333,38 @@ impl AstParser {
             let operator = self.previous().clone();
             let right = self.comparison()?;
 
-            let binary = Expression::Binary(
-                Box::new(
-                    Binary { left: expression, right, operator }
-                )
-            );
-            return Ok(binary)
+            let binary = Expression::Binary(Box::new(Binary {
+                left: expression,
+                right,
+                operator,
+            }));
+            return Ok(binary);
         }
 
-        Ok(expression) 
+        Ok(expression)
     }
 
     fn comparison(&mut self) -> Result<Expression, errors::Error> {
         let expression: Expression = self.addition()?;
 
-        while self.match_tokens(&[TokenType::Greater, TokenType::GreaterEqual, TokenType::Less, TokenType::LessEqual]) {
+        while self.match_tokens(&[
+            TokenType::Greater,
+            TokenType::GreaterEqual,
+            TokenType::Less,
+            TokenType::LessEqual,
+        ]) {
             let operator = self.previous().clone();
             let right = self.addition()?;
 
-            let binary = Expression::Binary(
-                Box::new(
-                    Binary { left: expression, right, operator }
-                )
-            );
-            return Ok(binary)
+            let binary = Expression::Binary(Box::new(Binary {
+                left: expression,
+                right,
+                operator,
+            }));
+            return Ok(binary);
         }
 
-        Ok(expression) 
+        Ok(expression)
     }
 
     fn addition(&mut self) -> Result<Expression, errors::Error> {
@@ -432,7 +427,7 @@ impl AstParser {
             return Ok(Expression::Grouping(Box::new(Grouping::new(expression))));
         }
 
-        Err(self.error(self.peek(),"Expect Expression"))
+        Err(self.error(self.peek(), "Expect Expression"))
     }
 
     fn match_tokens(&mut self, token_types: &[TokenType]) -> bool {
@@ -454,7 +449,11 @@ impl AstParser {
         self.previous()
     }
 
-    fn consume(&mut self, token_type: TokenType, error_message: &str) -> Result<&Token, errors::Error> {
+    fn consume(
+        &mut self,
+        token_type: TokenType,
+        error_message: &str,
+    ) -> Result<&Token, errors::Error> {
         if self.check(token_type) {
             return Ok(self.advance());
         }
@@ -487,8 +486,6 @@ impl AstParser {
     }
 
     fn error(&self, token: &Token, message: &str) -> errors::Error {
-        errors::Error::ParseError(
-            format!("[line: {}] (ParseError) {} ", token.line, message)
-        )
+        errors::Error::ParseError(format!("[line: {}] (ParseError) {} ", token.line, message))
     }
 }

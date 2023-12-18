@@ -1,8 +1,8 @@
-use crate::language::{scanner::token::Token, abstract_syntax_tree::visitor::ExpressionVisitor};
+use crate::language::{abstract_syntax_tree::visitor::ExpressionVisitor, scanner::token::Token};
 
 #[derive(Debug, Clone)]
 pub struct Variable {
-    pub name: Token
+    pub name: Token,
 }
 
 impl Variable {

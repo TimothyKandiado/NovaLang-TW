@@ -1,6 +1,7 @@
 use std::{
+    env, fs,
     io::{self, Write},
-    process::exit, env, fs,
+    process::exit,
 };
 
 use tim::language;

@@ -5,5 +5,5 @@ use super::Statement;
 #[derive(Debug, Clone)]
 pub struct WhileLoop {
     pub condition: Expression,
-    pub body: Statement
+    pub body: Statement,
 }

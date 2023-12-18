@@ -1,5 +1,12 @@
-use super::{expression::Expression, visitor::{ExpressionVisitor, StatementVisitor}, statement::{Statement, Block}};
-use crate::language::{scanner::{object::Object, token::TokenType}, errors};
+use super::{
+    expression::Expression,
+    statement::{Block, Statement},
+    visitor::{ExpressionVisitor, StatementVisitor},
+};
+use crate::language::{
+    errors,
+    scanner::{object::Object, token::TokenType},
+};
 
 /// A simple abstract syntax tree interpreter
 pub struct AstInterpreter {}
@@ -21,7 +28,6 @@ impl AstInterpreter {
 
     fn execute(&self, statement: &Statement) -> Result<(), errors::Error> {
         statement.accept(self)
-        
     }
 
     fn execute_block(&self, block: &Block) -> Result<(), errors::Error> {
@@ -37,7 +43,6 @@ impl AstInterpreter {
 
         result
     }
-
 
     fn evaluate(&self, expression: &Expression) -> Result<Object, errors::Error> {
         expression.accept::<Result<Object, errors::Error>>(self)
@@ -73,7 +78,10 @@ impl StatementVisitor for AstInterpreter {
         self.execute_block(block)
     }
 
-    fn visit_function_statement(&self, function_statement: &super::statement::function::FunctionStatement) -> Self::Output {
+    fn visit_function_statement(
+        &self,
+        function_statement: &super::statement::function::FunctionStatement,
+    ) -> Self::Output {
         todo!()
     }
 
@@ -81,7 +89,10 @@ impl StatementVisitor for AstInterpreter {
         todo!()
     }
 
-    fn visit_var_declaration(&self, var_declaration: &super::statement::declaration::VariableDeclaration) -> Self::Output {
+    fn visit_var_declaration(
+        &self,
+        var_declaration: &super::statement::declaration::VariableDeclaration,
+    ) -> Self::Output {
         todo!()
     }
 
@@ -91,7 +102,9 @@ impl StatementVisitor for AstInterpreter {
     }
 
     fn visit_none(&self) -> Self::Output {
-        Err(errors::Error::InterpretError("Cannot execute a nil statement".to_string()))
+        Err(errors::Error::InterpretError(
+            "Cannot execute a nil statement".to_string(),
+        ))
     }
 }
 
@@ -188,8 +201,6 @@ impl ExpressionVisitor for AstInterpreter {
                 "Undefined binary operation: {:?}",
                 binary.operator.token_type
             ))),
-
-            
         }
     }
 
@@ -227,7 +238,7 @@ impl ExpressionVisitor for AstInterpreter {
         let id = function.function_id.to_string();
         if id.as_str() == "print" {
             println!("{}", self.evaluate(&function.argument)?);
-            return Ok(Object::None)
+            return Ok(Object::None);
         }
 
         /* if let Object::Number(argument) = self.evaluate(&function.argument)? {

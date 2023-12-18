@@ -1,7 +1,15 @@
-
-use super::{expression::{
-    binary::Binary, grouping::Grouping, literal::Literal, function_call::FunctionCall, unary::Unary, variable::Variable, Expression,
-}, statement::{assignment::{Assign, Set, Get}, IfStatement, WhileLoop, Block, function::FunctionStatement, declaration::VariableDeclaration}};
+use super::{
+    expression::{
+        binary::Binary, function_call::FunctionCall, grouping::Grouping, literal::Literal,
+        unary::Unary, variable::Variable, Expression,
+    },
+    statement::{
+        assignment::{Assign, Get, Set},
+        declaration::VariableDeclaration,
+        function::FunctionStatement,
+        Block, IfStatement, WhileLoop,
+    },
+};
 
 pub trait ExpressionVisitor {
     type Output;

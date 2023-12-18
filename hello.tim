@@ -2,7 +2,7 @@ print("Hello World")
 print("I am Ironman")
 print("Nah!, I'd Win")
 
-if 1<2
+if (9==8)
     print("Greatest")
     print("I am true")
 else 

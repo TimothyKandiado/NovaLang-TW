@@ -89,19 +89,31 @@ impl ExpressionVisitor for AstToBytecode {
         todo!()
     }
 
-    fn visit_variable(&self, variable: &crate::language::abstract_syntax_tree::expression::variable::Variable) -> Self::Output {
+    fn visit_variable(
+        &self,
+        variable: &crate::language::abstract_syntax_tree::expression::variable::Variable,
+    ) -> Self::Output {
         todo!()
     }
 
-    fn visit_assign(&self, assign: &crate::language::abstract_syntax_tree::statement::assignment::Assign) -> Self::Output {
+    fn visit_assign(
+        &self,
+        assign: &crate::language::abstract_syntax_tree::statement::assignment::Assign,
+    ) -> Self::Output {
         todo!()
     }
 
-    fn visit_get(&self, get: &crate::language::abstract_syntax_tree::statement::assignment::Get) -> Self::Output {
+    fn visit_get(
+        &self,
+        get: &crate::language::abstract_syntax_tree::statement::assignment::Get,
+    ) -> Self::Output {
         todo!()
     }
 
-    fn visit_set(&self, set: &crate::language::abstract_syntax_tree::statement::assignment::Set) -> Self::Output {
+    fn visit_set(
+        &self,
+        set: &crate::language::abstract_syntax_tree::statement::assignment::Set,
+    ) -> Self::Output {
         todo!()
     }
 }

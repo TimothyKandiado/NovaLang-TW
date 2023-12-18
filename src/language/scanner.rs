@@ -1,14 +1,14 @@
 pub mod object;
 pub mod token;
 
-use token::{Token, TokenType};
 use crate::language::errors;
+use token::{Token, TokenType};
 
 fn simple_token(token_type: TokenType, line: usize) -> Token {
     Token {
         token_type,
         object: object::Object::None,
-        line
+        line,
     }
 }
 
@@ -32,7 +32,7 @@ impl Scanner {
             source: String::new(),
             start: 0,
             current: 0,
-            line: 1
+            line: 1,
         }
     }
 
@@ -48,7 +48,7 @@ impl Scanner {
         tokens.push(Token {
             token_type: TokenType::Eof,
             object: object::Object::None,
-            line: self.line
+            line: self.line,
         });
 
         Ok(tokens)
@@ -81,7 +81,10 @@ impl Scanner {
                     return Ok(simple_token(TokenType::And, self.line));
                 }
 
-                Err(errors::Error::ScanError(format!("Unknown token {}", current_character)))
+                Err(errors::Error::ScanError(format!(
+                    "Unknown token {}",
+                    current_character
+                )))
             }
 
             '|' => {
@@ -128,7 +131,10 @@ impl Scanner {
             x if x.is_ascii_digit() => self.scan_number(),
             x if x.is_alphabetic() => self.scan_identifier(),
 
-            _ => Err(errors::Error::ScanError(format!("Undefined character {}", current_character))),
+            _ => Err(errors::Error::ScanError(format!(
+                "Undefined character {}",
+                current_character
+            ))),
         }
     }
 
@@ -155,7 +161,7 @@ impl Scanner {
             Some(Token {
                 token_type: TokenType::NewLine,
                 object: object::Object::None,
-                line: self.line
+                line: self.line,
             })
         } else {
             None
@@ -200,12 +206,17 @@ impl Scanner {
             if let Ok(exponent_value) = exponent_segment.parse::<f64>() {
                 exponent = exponent_value;
             } else {
-                return Err(errors::Error::ScanError("could not parse exponent value".to_string()));
+                return Err(errors::Error::ScanError(
+                    "could not parse exponent value".to_string(),
+                ));
             }
         }
 
         if number_result.is_err() {
-            return Err(errors::Error::ScanError(format!("could not parse float from {}", segment)));
+            return Err(errors::Error::ScanError(format!(
+                "could not parse float from {}",
+                segment
+            )));
         }
 
         if let Ok(number) = number_result {
@@ -213,10 +224,13 @@ impl Scanner {
             Ok(Token {
                 token_type: TokenType::Number,
                 object: object::Object::Number(number),
-                line: self.line
+                line: self.line,
             })
         } else {
-            Err(errors::Error::ScanError(format!("could not parse number from {}", segment)))
+            Err(errors::Error::ScanError(format!(
+                "could not parse number from {}",
+                segment
+            )))
         }
     }
 
@@ -246,7 +260,7 @@ impl Scanner {
             _ => Ok(Token {
                 token_type: TokenType::Identifier,
                 object: object::Object::String(segment.to_string()),
-                line: self.line
+                line: self.line,
             }),
         }
     }
@@ -256,16 +270,14 @@ impl Scanner {
             self.advance();
         }
         self.consume('"', "Expect \" at end of string")?;
-        
+
         let string = self.source[self.start..self.current].to_string();
 
-        return Ok(
-            Token { 
-                token_type: TokenType::String, 
-                object: object::Object::String(string),
-                line: self.line
-             }
-        )
+        return Ok(Token {
+            token_type: TokenType::String,
+            object: object::Object::String(string),
+            line: self.line,
+        });
     }
 
     fn peek(&self) -> char {

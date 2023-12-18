@@ -1,6 +1,7 @@
 use std::{
+    env, fs,
     io::{self, Write},
-    process::exit, env, fs,
+    process::exit,
 };
 use tim::language;
 
@@ -46,7 +47,9 @@ fn repl() {
 
 fn scan_file(path: &str) {
     let code = fs::read_to_string(path).expect("Cannot read file");
-    let tokens = language::Scanner::new().scan_tokens(&code).expect("Could not scan tokens");
+    let tokens = language::Scanner::new()
+        .scan_tokens(&code)
+        .expect("Could not scan tokens");
 
     language::debug_print_tokens(tokens);
 }

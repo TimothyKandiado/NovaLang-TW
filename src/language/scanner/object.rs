@@ -13,7 +13,7 @@ impl Object {
         match self {
             Self::None => false,
             Self::Bool(boolean) => *boolean,
-            _ => true
+            _ => true,
         }
     }
 }

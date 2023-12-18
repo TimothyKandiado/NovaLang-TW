@@ -30,7 +30,6 @@ pub enum TokenType {
     End,
     Return,
     //Assign,
-
     True,
     False,
     And,
@@ -49,18 +48,24 @@ pub enum TokenType {
 pub struct Token {
     pub token_type: TokenType,
     pub object: Object,
-    pub line: usize
+    pub line: usize,
 }
 
 impl Display for Token {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}", match self.token_type {
-            TokenType::Number | TokenType::String | TokenType::Identifier => {
-                format!("({:?} : {})",self.token_type, self.object.to_string())
-            }
+        write!(
+            f,
+            "{}",
+            match self.token_type {
+                TokenType::Number | TokenType::String | TokenType::Identifier => {
+                    format!("({:?} : {})", self.token_type, self.object.to_string())
+                }
 
-            _ => {format!("{:?}", self.token_type)}
-        })
+                _ => {
+                    format!("{:?}", self.token_type)
+                }
+            }
+        )
     }
 }
 

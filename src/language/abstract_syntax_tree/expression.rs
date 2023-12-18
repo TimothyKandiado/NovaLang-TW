@@ -1,7 +1,7 @@
 pub mod binary;
+pub mod function_call;
 pub mod grouping;
 pub mod literal;
-pub mod function_call;
 pub mod unary;
 pub mod variable;
 
@@ -12,7 +12,10 @@ use unary::Unary;
 
 use self::{function_call::FunctionCall, variable::Variable};
 
-use super::{visitor::ExpressionVisitor, statement::assignment::{Assign, Set, Get}};
+use super::{
+    statement::assignment::{Assign, Get, Set},
+    visitor::ExpressionVisitor,
+};
 
 #[derive(Debug, Clone)]
 pub enum Expression {
@@ -25,7 +28,7 @@ pub enum Expression {
     Variable(Box<Variable>),
     Assign(Box<Assign>),
     Get(Box<Get>),
-    Set(Box<Set>)
+    Set(Box<Set>),
 }
 
 impl Expression {
@@ -39,7 +42,7 @@ impl Expression {
             Self::Variable(variable_expression) => variable_expression.accept(visitor),
             Self::Assign(assign) => assign.accept(visitor),
             Self::Get(get) => get.accept(visitor),
-            Self::Set(set) => set.accept(visitor)
+            Self::Set(set) => set.accept(visitor),
         }
     }
 }

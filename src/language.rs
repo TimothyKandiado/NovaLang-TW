@@ -1,10 +1,10 @@
 mod abstract_syntax_tree;
 mod bytecode;
-mod scanner;
 mod errors;
+mod scanner;
 
-pub use scanner::Scanner;
 pub use scanner::token::debug_print_tokens;
+pub use scanner::Scanner;
 
 use crate::language::{
     abstract_syntax_tree::{interpreter::AstInterpreter, parser::AstParser},
@@ -12,7 +12,8 @@ use crate::language::{
 };
 
 use self::{
-    abstract_syntax_tree::{expression::Expression, statement::Statement}, bytecode::ast_to_bytecode::AstToBytecode,
+    abstract_syntax_tree::{expression::Expression, statement::Statement},
+    bytecode::ast_to_bytecode::AstToBytecode,
 };
 
 pub fn interpret(source: &str) -> Result<(), errors::Error> {
