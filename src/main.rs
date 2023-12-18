@@ -1,13 +1,18 @@
 use std::{
     io::{self, Write},
-    process::exit,
+    process::exit, env, fs,
 };
 
 use tim::language;
 
 const PROMPT: &str = ">>";
 fn main() {
-    repl()
+    let args: Vec<String> = env::args().collect::<Vec<String>>();
+    if args.len() > 1 {
+        run_file(&args[1])
+    } else {
+        repl()
+    }
 }
 
 fn repl() {
@@ -21,18 +26,22 @@ fn repl() {
             exit(1)
         }
 
-        let input = input.trim();
+        //let input = input.trim();
 
-        if input == "quit" || input == "Quit" {
+        if input == "quit\r\n" || input == "Quit\r\n" {
             println!("exiting");
             break;
         }
 
-        let result = language::interpret(input);
-        if let Ok(answer) = result {
-            println!("{}", answer);
-        } else {
-            eprintln!("Error: {}", result.unwrap_err())
+        let result = language::interpret(&input);
+        if result.is_err() {
+            let err = result.unwrap_err();
+            println!("{}", err)
         }
     }
+}
+
+fn run_file(path: &str) {
+    let code = fs::read_to_string(path).expect("Unable to read file");
+    let _ = language::interpret(&code).expect("Error running code");
 }

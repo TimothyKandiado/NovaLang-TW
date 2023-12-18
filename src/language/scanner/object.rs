@@ -8,6 +8,16 @@ pub enum Object {
     String(String),
 }
 
+impl Object {
+    pub fn is_truthy(&self) -> bool {
+        match self {
+            Self::None => false,
+            Self::Bool(boolean) => *boolean,
+            _ => true
+        }
+    }
+}
+
 impl Display for Object {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let description = match self {

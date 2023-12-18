@@ -1,13 +1,13 @@
 use super::Expression;
 use crate::language::{abstract_syntax_tree::visitor::ExpressionVisitor, scanner::object::Object};
 
-#[derive(Debug)]
-pub struct MathFunction {
+#[derive(Debug, Clone)]
+pub struct FunctionCall {
     pub function_id: Object,
     pub argument: Expression,
 }
 
-impl MathFunction {
+impl FunctionCall {
     pub fn new(function_id: Object, argument: Expression) -> Self {
         Self {
             function_id,
@@ -15,6 +15,6 @@ impl MathFunction {
         }
     }
     pub fn accept<T>(&self, visitor: &impl ExpressionVisitor<Output = T>) -> T {
-        visitor.visit_math_function(self)
+        visitor.visit_function_call(self)
     }
 }

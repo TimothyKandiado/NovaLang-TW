@@ -82,10 +82,26 @@ impl ExpressionVisitor for AstToBytecode {
         Ok(chunk)
     }
 
-    fn visit_math_function(
+    fn visit_function_call(
         &self,
-        _math_function: &crate::language::abstract_syntax_tree::expression::math_function::MathFunction,
+        _math_function: &crate::language::abstract_syntax_tree::expression::function_call::FunctionCall,
     ) -> Self::Output {
+        todo!()
+    }
+
+    fn visit_variable(&self, variable: &crate::language::abstract_syntax_tree::expression::variable::Variable) -> Self::Output {
+        todo!()
+    }
+
+    fn visit_assign(&self, assign: &crate::language::abstract_syntax_tree::statement::assignment::Assign) -> Self::Output {
+        todo!()
+    }
+
+    fn visit_get(&self, get: &crate::language::abstract_syntax_tree::statement::assignment::Get) -> Self::Output {
+        todo!()
+    }
+
+    fn visit_set(&self, set: &crate::language::abstract_syntax_tree::statement::assignment::Set) -> Self::Output {
         todo!()
     }
 }

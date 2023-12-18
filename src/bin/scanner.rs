@@ -1,12 +1,18 @@
 use std::{
     io::{self, Write},
-    process::exit,
+    process::exit, env, fs,
 };
 use tim::language;
 
 fn main() {
-    println!("function of this program is to scan input and return the generated tokens");
-    repl()
+    let args = env::args().collect::<Vec<String>>();
+
+    if args.len() > 1 {
+        scan_file(&args[1])
+    } else {
+        println!("function of this program is to scan input and return the generated tokens");
+        repl()
+    }
 }
 
 fn repl() {
@@ -20,19 +26,27 @@ fn repl() {
             exit(1)
         }
 
-        let input = input.trim();
+        println!("input: {:?}", input);
+        //let input = input.trim();
 
-        if input == "quit" || input == "Quit" {
+        if input == "quit\r\n" || input == "Quit\r\n" {
             println!("exiting");
             break;
         }
 
-        let result = language::Scanner::new().scan_tokens(input);
+        let result = language::Scanner::new().scan_tokens(&input);
 
         if let Ok(answer) = result {
-            println!("{:?}", answer);
+            language::debug_print_tokens(answer);
         } else {
             eprintln!("Error: {}", result.unwrap_err())
         }
     }
+}
+
+fn scan_file(path: &str) {
+    let code = fs::read_to_string(path).expect("Cannot read file");
+    let tokens = language::Scanner::new().scan_tokens(&code).expect("Could not scan tokens");
+
+    language::debug_print_tokens(tokens);
 }

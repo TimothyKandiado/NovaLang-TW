@@ -7,16 +7,16 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in library 'simple_interpreter'",
+            "name": "Debug unit tests in library 'tim'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
                     "--lib",
-                    "--package=simple_interpreter"
+                    "--package=tim"
                 ],
                 "filter": {
-                    "name": "simple_interpreter",
+                    "name": "tim",
                     "kind": "lib"
                 }
             },
@@ -26,15 +26,15 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug executable 'simple_interpreter'",
+            "name": "Debug executable 'tim'",
             "cargo": {
                 "args": [
                     "build",
-                    "--bin=simple_interpreter",
-                    "--package=simple_interpreter"
+                    "--bin=tim",
+                    "--package=tim"
                 ],
                 "filter": {
-                    "name": "simple_interpreter",
+                    "name": "tim",
                     "kind": "bin"
                 }
             },
@@ -44,16 +44,90 @@
         {
             "type": "lldb",
             "request": "launch",
-            "name": "Debug unit tests in executable 'simple_interpreter'",
+            "name": "Debug unit tests in executable 'tim'",
             "cargo": {
                 "args": [
                     "test",
                     "--no-run",
-                    "--bin=simple_interpreter",
-                    "--package=simple_interpreter"
+                    "--bin=tim",
+                    "--package=tim"
                 ],
                 "filter": {
-                    "name": "simple_interpreter",
+                    "name": "tim",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'bytec'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=bytec",
+                    "--package=tim"
+                ],
+                "filter": {
+                    "name": "bytec",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'bytec'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=bytec",
+                    "--package=tim"
+                ],
+                "filter": {
+                    "name": "bytec",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'scanner'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=scanner",
+                    "--package=tim"
+                ],
+                "filter": {
+                    "name": "scanner",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'scanner'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=scanner",
+                    "--package=tim"
+                ],
+                "filter": {
+                    "name": "scanner",
                     "kind": "bin"
                 }
             },

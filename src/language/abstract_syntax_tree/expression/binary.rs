@@ -1,7 +1,7 @@
 use super::Expression;
 use crate::language::{abstract_syntax_tree::visitor::ExpressionVisitor, scanner::token::Token};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Binary {
     pub left: Expression,
     pub right: Expression,

@@ -1,0 +1,11 @@
+print("Hello World")
+print("I am Ironman")
+print("Nah!, I'd Win")
+
+if 1<2
+    print("Greatest")
+    print("I am true")
+else 
+    print("I am false")
+    print("Honored one")
+end

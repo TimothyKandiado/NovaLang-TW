@@ -1,6 +1,6 @@
 use crate::language::{abstract_syntax_tree::visitor::ExpressionVisitor, scanner::object::Object};
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Literal {
     pub object: Object,
 }

@@ -2,7 +2,7 @@ use crate::language::abstract_syntax_tree::visitor::ExpressionVisitor;
 
 use super::Expression;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Grouping {
     pub expression: Expression,
 }

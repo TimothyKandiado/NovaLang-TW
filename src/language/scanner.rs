@@ -2,11 +2,13 @@ pub mod object;
 pub mod token;
 
 use token::{Token, TokenType};
+use crate::language::errors;
 
-fn simple_token(token_type: TokenType) -> Token {
+fn simple_token(token_type: TokenType, line: usize) -> Token {
     Token {
         token_type,
         object: object::Object::None,
+        line
     }
 }
 
@@ -15,6 +17,7 @@ pub struct Scanner {
 
     start: usize,
     current: usize,
+    line: usize,
 }
 
 impl Default for Scanner {
@@ -29,10 +32,11 @@ impl Scanner {
             source: String::new(),
             start: 0,
             current: 0,
+            line: 1
         }
     }
 
-    pub fn scan_tokens(mut self, source: &str) -> Result<Vec<Token>, String> {
+    pub fn scan_tokens(mut self, source: &str) -> Result<Vec<Token>, errors::Error> {
         self.source = source.to_string();
         let mut tokens = Vec::new();
 
@@ -44,12 +48,13 @@ impl Scanner {
         tokens.push(Token {
             token_type: TokenType::Eof,
             object: object::Object::None,
+            line: self.line
         });
 
         Ok(tokens)
     }
 
-    fn scan_token(&mut self) -> Result<Token, String> {
+    fn scan_token(&mut self) -> Result<Token, errors::Error> {
         let newline_token = self.skip_whitespace();
         if let Some(newline) = newline_token {
             return Ok(newline);
@@ -59,68 +64,71 @@ impl Scanner {
         let current_character = self.advance();
 
         match current_character {
-            '+' => Ok(simple_token(TokenType::Plus)),
-            '-' => Ok(simple_token(TokenType::Minus)),
-            '*' => Ok(simple_token(TokenType::Star)),
-            '/' => Ok(simple_token(TokenType::Slash)),
+            '+' => Ok(simple_token(TokenType::Plus, self.line)),
+            '-' => Ok(simple_token(TokenType::Minus, self.line)),
+            '*' => Ok(simple_token(TokenType::Star, self.line)),
+            '/' => Ok(simple_token(TokenType::Slash, self.line)),
 
-            '(' => Ok(simple_token(TokenType::LeftParen)),
-            ')' => Ok(simple_token(TokenType::RightParen)),
-            ':' => Ok(simple_token(TokenType::Colon)),
+            '(' => Ok(simple_token(TokenType::LeftParen, self.line)),
+            ')' => Ok(simple_token(TokenType::RightParen, self.line)),
+            ':' => Ok(simple_token(TokenType::Colon, self.line)),
+            '.' => Ok(simple_token(TokenType::Dot, self.line)),
+            ',' => Ok(simple_token(TokenType::Comma, self.line)),
+            '"' => self.scan_string(),
             '&' => {
                 let next = self.advance();
                 if next == '&' {
-                    return Ok(simple_token(TokenType::And));
+                    return Ok(simple_token(TokenType::And, self.line));
                 }
 
-                Err(format!("Unknown token {}", current_character))
+                Err(errors::Error::ScanError(format!("Unknown token {}", current_character)))
             }
 
             '|' => {
                 let next = self.advance();
                 if next != '|' {
-                    return Err("Unknown token '|' ".to_string());
+                    return Err(errors::Error::ScanError("Unknown token '|' ".to_string()));
                 }
-                Ok(simple_token(TokenType::Or))
+                Ok(simple_token(TokenType::Or, self.line))
             }
 
             '>' => {
                 if self.peek() == '=' {
                     self.advance();
-                    return Ok(simple_token(TokenType::GreaterEqual));
+                    return Ok(simple_token(TokenType::GreaterEqual, self.line));
                 }
-                Ok(simple_token(TokenType::Greater))
+                Ok(simple_token(TokenType::Greater, self.line))
             }
 
             '<' => {
                 if self.peek() == '=' {
                     self.advance();
-                    return Ok(simple_token(TokenType::LessEqual));
+                    return Ok(simple_token(TokenType::LessEqual, self.line));
                 }
-                Ok(simple_token(TokenType::Less))
+                Ok(simple_token(TokenType::Less, self.line))
             }
 
             '=' => {
                 if self.peek() == '=' {
                     self.advance();
-                    return Ok(simple_token(TokenType::EqualEqual));
+                    return Ok(simple_token(TokenType::EqualEqual, self.line));
                 }
-                Ok(simple_token(TokenType::Assign))
+                Ok(simple_token(TokenType::Equal, self.line))
             }
 
             '!' => {
                 if self.peek() == '=' {
                     self.advance();
-                    return Ok(simple_token(TokenType::NotEqual));
+                    return Ok(simple_token(TokenType::NotEqual, self.line));
                 }
 
-                Ok(simple_token(TokenType::Not))
+                Ok(simple_token(TokenType::Not, self.line))
             }
 
             x if x.is_ascii_digit() => self.scan_number(),
             x if x.is_alphabetic() => self.scan_identifier(),
 
-            _ => Err(format!("Undefined character {}", current_character)),
+            _ => Err(errors::Error::ScanError(format!("Undefined character {}", current_character))),
         }
     }
 
@@ -128,11 +136,14 @@ impl Scanner {
         let mut has_consumed_newline = false;
 
         while !self.is_at_end() {
-            if !has_consumed_newline && self.peek() == '\n' {
-                has_consumed_newline = true;
-            }
             match self.peek() {
-                ' ' | '\n' | '\r' => {
+                ' ' | '\r' => {
+                    self.advance();
+                }
+
+                '\n' => {
+                    has_consumed_newline = true;
+                    self.line += 1;
                     self.advance();
                 }
 
@@ -144,13 +155,14 @@ impl Scanner {
             Some(Token {
                 token_type: TokenType::NewLine,
                 object: object::Object::None,
+                line: self.line
             })
         } else {
             None
         }
     }
 
-    fn scan_number(&mut self) -> Result<Token, String> {
+    fn scan_number(&mut self) -> Result<Token, errors::Error> {
         // consume all digits until the end or non digit character
         while !self.is_at_end() && self.peek().is_ascii_digit() {
             self.advance();
@@ -188,12 +200,12 @@ impl Scanner {
             if let Ok(exponent_value) = exponent_segment.parse::<f64>() {
                 exponent = exponent_value;
             } else {
-                return Err("could not parse exponent value".to_string());
+                return Err(errors::Error::ScanError("could not parse exponent value".to_string()));
             }
         }
 
         if number_result.is_err() {
-            return Err(format!("could not parse float from {}", segment));
+            return Err(errors::Error::ScanError(format!("could not parse float from {}", segment)));
         }
 
         if let Ok(number) = number_result {
@@ -201,13 +213,14 @@ impl Scanner {
             Ok(Token {
                 token_type: TokenType::Number,
                 object: object::Object::Number(number),
+                line: self.line
             })
         } else {
-            Err(format!("could not parse number from {}", segment))
+            Err(errors::Error::ScanError(format!("could not parse number from {}", segment)))
         }
     }
 
-    fn scan_identifier(&mut self) -> Result<Token, String> {
+    fn scan_identifier(&mut self) -> Result<Token, errors::Error> {
         while !self.is_at_end() && self.peek().is_alphabetic() {
             self.advance();
         }
@@ -215,21 +228,44 @@ impl Scanner {
         let segment = &self.source[self.start..self.current];
 
         match segment {
-            "for" => Ok(simple_token(TokenType::For)),
-            "while" => Ok(simple_token(TokenType::While)),
-            "fn" => Ok(simple_token(TokenType::Fn)),
-            "end" => Ok(simple_token(TokenType::End)),
-            "return" => Ok(simple_token(TokenType::Return)),
-            "true" => Ok(simple_token(TokenType::True)),
-            "false" => Ok(simple_token(TokenType::False)),
-            "and" => Ok(simple_token(TokenType::And)),
-            "or" => Ok(simple_token(TokenType::Or)),
+            "for" => Ok(simple_token(TokenType::For, self.line)),
+            "if" => Ok(simple_token(TokenType::If, self.line)),
+            "else" => Ok(simple_token(TokenType::Else, self.line)),
+            "while" => Ok(simple_token(TokenType::While, self.line)),
+            "fn" => Ok(simple_token(TokenType::Fn, self.line)),
+            "end" => Ok(simple_token(TokenType::End, self.line)),
+            "return" => Ok(simple_token(TokenType::Return, self.line)),
+            "true" => Ok(simple_token(TokenType::True, self.line)),
+            "false" => Ok(simple_token(TokenType::False, self.line)),
+            "and" => Ok(simple_token(TokenType::And, self.line)),
+            "or" => Ok(simple_token(TokenType::Or, self.line)),
+            "class" => Ok(simple_token(TokenType::Class, self.line)),
+            "let" => Ok(simple_token(TokenType::Let, self.line)),
+            "Block" => Ok(simple_token(TokenType::Block, self.line)),
 
             _ => Ok(Token {
                 token_type: TokenType::Identifier,
                 object: object::Object::String(segment.to_string()),
+                line: self.line
             }),
         }
+    }
+
+    fn scan_string(&mut self) -> Result<Token, errors::Error> {
+        while !self.is_at_end() && self.peek() != '"' {
+            self.advance();
+        }
+        self.consume('"', "Expect \" at end of string")?;
+        
+        let string = self.source[self.start..self.current].to_string();
+
+        return Ok(
+            Token { 
+                token_type: TokenType::String, 
+                object: object::Object::String(string),
+                line: self.line
+             }
+        )
     }
 
     fn peek(&self) -> char {
@@ -252,6 +288,15 @@ impl Scanner {
     fn is_at_end(&self) -> bool {
         self.current >= self.source.len()
     }
+
+    fn consume(&mut self, character: char, message: &str) -> Result<(), errors::Error> {
+        if self.peek() == character {
+            self.advance();
+            return Ok(());
+        }
+
+        Err(errors::Error::ScanError(message.to_string()))
+    }
 }
 
 #[cfg(test)]
@@ -272,11 +317,13 @@ mod tests {
             vec![
                 Token {
                     token_type: TokenType::Number,
-                    object: Object::Number(100.0)
+                    object: Object::Number(100.0),
+                    line: 1
                 },
                 Token {
                     token_type: TokenType::Eof,
-                    object: Object::None
+                    object: Object::None,
+                    line: 1
                 }
             ]
         )
@@ -292,11 +339,13 @@ mod tests {
             vec![
                 Token {
                     token_type: TokenType::Identifier,
-                    object: Object::String("sin".to_string())
+                    object: Object::String("sin".to_string()),
+                    line: 1
                 },
                 Token {
                     token_type: TokenType::Eof,
-                    object: Object::None
+                    object: Object::None,
+                    line: 1
                 }
             ]
         )
@@ -312,27 +361,33 @@ mod tests {
             vec![
                 Token {
                     token_type: TokenType::For,
-                    object: Object::None
+                    object: Object::None,
+                    line: 1
                 },
                 Token {
                     token_type: TokenType::While,
-                    object: Object::None
+                    object: Object::None,
+                    line: 1
                 },
                 Token {
                     token_type: TokenType::NewLine,
-                    object: Object::None
+                    object: Object::None,
+                    line: 2
                 },
                 Token {
                     token_type: TokenType::Fn,
-                    object: Object::None
+                    object: Object::None,
+                    line: 2
                 },
                 Token {
                     token_type: TokenType::End,
-                    object: Object::None
+                    object: Object::None,
+                    line: 2
                 },
                 Token {
                     token_type: TokenType::Eof,
-                    object: Object::None
+                    object: Object::None,
+                    line: 2
                 }
             ]
         )
@@ -348,43 +403,53 @@ mod tests {
             vec![
                 Token {
                     token_type: TokenType::Number,
-                    object: Object::Number(1.0)
+                    object: Object::Number(1.0),
+                    line: 1
                 },
                 Token {
                     token_type: TokenType::Plus,
-                    object: Object::None
+                    object: Object::None,
+                    line: 1
                 },
                 Token {
                     token_type: TokenType::Number,
-                    object: Object::Number(2.0)
+                    object: Object::Number(2.0),
+                    line: 1
                 },
                 Token {
                     token_type: TokenType::Slash,
-                    object: Object::None
+                    object: Object::None,
+                    line: 1
                 },
                 Token {
                     token_type: TokenType::LeftParen,
-                    object: Object::None
+                    object: Object::None,
+                    line: 1
                 },
                 Token {
                     token_type: TokenType::Number,
-                    object: Object::Number(3.0)
+                    object: Object::Number(3.0),
+                    line: 1
                 },
                 Token {
                     token_type: TokenType::Plus,
-                    object: Object::None
+                    object: Object::None,
+                    line: 1
                 },
                 Token {
                     token_type: TokenType::Number,
-                    object: Object::Number(1.0)
+                    object: Object::Number(1.0),
+                    line: 1
                 },
                 Token {
                     token_type: TokenType::RightParen,
-                    object: Object::None
+                    object: Object::None,
+                    line: 1
                 },
                 Token {
                     token_type: TokenType::Eof,
-                    object: Object::None
+                    object: Object::None,
+                    line: 1
                 }
             ]
         )
@@ -398,15 +463,16 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
-                simple_token(TokenType::EqualEqual),
-                simple_token(TokenType::GreaterEqual),
-                simple_token(TokenType::LessEqual),
-                simple_token(TokenType::Greater),
-                simple_token(TokenType::Less),
-                simple_token(TokenType::NotEqual),
+                simple_token(TokenType::EqualEqual, 1),
+                simple_token(TokenType::GreaterEqual, 1),
+                simple_token(TokenType::LessEqual, 1),
+                simple_token(TokenType::Greater, 1),
+                simple_token(TokenType::Less, 1),
+                simple_token(TokenType::NotEqual, 1),
                 Token {
                     token_type: TokenType::Eof,
-                    object: Object::None
+                    object: Object::None,
+                    line: 1
                 }
             ]
         )
@@ -420,14 +486,15 @@ mod tests {
         assert_eq!(
             tokens,
             vec![
-                simple_token(TokenType::And),
-                simple_token(TokenType::Or),
-                simple_token(TokenType::Not),
-                simple_token(TokenType::And),
-                simple_token(TokenType::Or),
+                simple_token(TokenType::And, 1),
+                simple_token(TokenType::Or, 1),
+                simple_token(TokenType::Not, 1),
+                simple_token(TokenType::And, 1),
+                simple_token(TokenType::Or, 1),
                 Token {
                     token_type: TokenType::Eof,
-                    object: Object::None
+                    object: Object::None,
+                    line: 1
                 }
             ]
         )

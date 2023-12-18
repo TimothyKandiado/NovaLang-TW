@@ -2,7 +2,7 @@ use crate::language::{abstract_syntax_tree::visitor::ExpressionVisitor, scanner:
 
 use super::Expression;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Unary {
     pub operator: Token,
     pub right: Expression,
