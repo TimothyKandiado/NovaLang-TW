@@ -9,4 +9,8 @@ impl Variable {
     pub fn accept<T>(&self, visitor: &impl ExpressionVisitor<Output = T>) -> T {
         todo!()
     }
+
+    pub fn new(name: Token) -> Self {
+        Self { name }
+    }
 }

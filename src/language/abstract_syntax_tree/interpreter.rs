@@ -1,4 +1,4 @@
-use std::sync::{Arc, RwLock};
+use std::{sync::{Arc, RwLock}, env};
 
 use super::{
     environment::Environment,
@@ -298,7 +298,19 @@ impl ExpressionVisitor for AstInterpreter {
     }
 
     fn visit_assign(&mut self, assign: &super::statement::assignment::Assign) -> Self::Output {
-        todo!()
+        let value = self.evaluate(&assign.value)?;
+
+        let env_writer = self.environment.write();
+        if let Ok(mut env_writer) = env_writer {
+            let value = Arc::new(RwLock::new(value));
+            (*env_writer).set_value(assign.name.object.to_string().as_str(), value)?;
+        }
+        else {
+            let err = env_writer.unwrap_err();
+            return Err(errors::Error::RuntimeError(err.to_string()))
+        }
+
+        Ok(Object::None)
     }
 
     fn visit_get(&mut self, get: &super::statement::assignment::Get) -> Self::Output {

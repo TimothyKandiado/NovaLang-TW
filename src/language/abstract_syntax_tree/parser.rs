@@ -11,7 +11,7 @@ use crate::language::{
 use super::{
     expression::{
         binary::Binary, call::Call, grouping::Grouping, literal::Literal,
-        unary::Unary, Expression, self,
+        unary::Unary, Expression, self, variable::Variable,
     },
     statement::{
         self,
@@ -403,7 +403,7 @@ impl AstParser {
             return Ok(Expression::Unary(Box::new(Unary::new(right, operator))));
         }
 
-        self.primary()
+        self.call()
     }
 
     fn call(&mut self) -> Result<Expression, errors::Error> {
@@ -464,7 +464,7 @@ impl AstParser {
         if self.match_tokens(&[TokenType::Identifier]) {
             let token = self.previous().clone();
 
-            return Ok(Expression::Literal(Literal::new(token.object)));
+            return Ok(Expression::Variable(Box::new(Variable::new(token))));
         }
 
         // Handle literals
