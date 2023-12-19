@@ -8,13 +8,13 @@ use super::{chunk::Chunk, code::OpCode};
 pub struct AstToBytecode {}
 
 impl AstToBytecode {
-    pub fn convert_expression_to_bytecode(&self, expression: &Expression) -> Result<Chunk, String> {
+    pub fn convert_expression_to_bytecode(&mut self, expression: &Expression) -> Result<Chunk, String> {
         let mut chunk = self.evaluate(expression)?;
         chunk.instructions.push(OpCode::Return);
         Ok(chunk)
     }
 
-    fn evaluate(&self, expression: &Expression) -> Result<Chunk, String> {
+    fn evaluate(&mut self, expression: &Expression) -> Result<Chunk, String> {
         expression.accept(self)
     }
 }
@@ -23,7 +23,7 @@ impl ExpressionVisitor for AstToBytecode {
     type Output = Result<Chunk, String>;
 
     fn visit_binary(
-        &self,
+        &mut self,
         binary: &crate::language::abstract_syntax_tree::expression::binary::Binary,
     ) -> Self::Output {
         let mut left = self.evaluate(&binary.left)?;
@@ -44,7 +44,7 @@ impl ExpressionVisitor for AstToBytecode {
     }
 
     fn visit_unary(
-        &self,
+        &mut self,
         unary: &crate::language::abstract_syntax_tree::expression::unary::Unary,
     ) -> Self::Output {
         let mut right = self.evaluate(&unary.right)?;
@@ -64,14 +64,14 @@ impl ExpressionVisitor for AstToBytecode {
     }
 
     fn visit_grouping(
-        &self,
+        &mut self,
         grouping: &crate::language::abstract_syntax_tree::expression::grouping::Grouping,
     ) -> Self::Output {
         self.evaluate(&grouping.expression)
     }
 
     fn visit_literal(
-        &self,
+        &mut self,
         literal: &crate::language::abstract_syntax_tree::expression::literal::Literal,
     ) -> Self::Output {
         let object = literal.object.clone();
@@ -82,36 +82,36 @@ impl ExpressionVisitor for AstToBytecode {
         Ok(chunk)
     }
 
-    fn visit_function_call(
-        &self,
-        _math_function: &crate::language::abstract_syntax_tree::expression::function_call::FunctionCall,
+    fn visit_call(
+        &mut self,
+        _math_function: &crate::language::abstract_syntax_tree::expression::call::Call,
     ) -> Self::Output {
         todo!()
     }
 
     fn visit_variable(
-        &self,
+        &mut self,
         variable: &crate::language::abstract_syntax_tree::expression::variable::Variable,
     ) -> Self::Output {
         todo!()
     }
 
     fn visit_assign(
-        &self,
+        &mut self,
         assign: &crate::language::abstract_syntax_tree::statement::assignment::Assign,
     ) -> Self::Output {
         todo!()
     }
 
     fn visit_get(
-        &self,
+        &mut self,
         get: &crate::language::abstract_syntax_tree::statement::assignment::Get,
     ) -> Self::Output {
         todo!()
     }
 
     fn visit_set(
-        &self,
+        &mut self,
         set: &crate::language::abstract_syntax_tree::statement::assignment::Set,
     ) -> Self::Output {
         todo!()

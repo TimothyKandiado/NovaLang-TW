@@ -5,6 +5,7 @@ pub enum Error {
     ParseError(String),
     ScanError(String),
     InterpretError(String),
+    RuntimeError(String),
 }
 
 impl Display for Error {
@@ -16,6 +17,7 @@ impl Display for Error {
                 Self::ParseError(description) => description,
                 Self::ScanError(description) => description,
                 Self::InterpretError(description) => description,
+                Self::RuntimeError(description) => description,
             }
         )
     }

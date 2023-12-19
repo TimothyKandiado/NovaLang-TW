@@ -1,4 +1,7 @@
+use std::sync::{Arc, RwLock};
+
 use super::{
+    environment::Environment,
     expression::Expression,
     statement::{Block, Statement},
     visitor::{ExpressionVisitor, StatementVisitor},
@@ -9,16 +12,24 @@ use crate::language::{
 };
 
 /// A simple abstract syntax tree interpreter
-pub struct AstInterpreter {}
+pub struct AstInterpreter {
+    environment: Arc<RwLock<Environment>>,
+}
 
 impl AstInterpreter {
-    pub fn interpret_expression(&self, expression: Expression) -> Result<String, errors::Error> {
+    pub fn new() -> Self {
+        Self {
+            environment: Arc::new(RwLock::new(Environment::new())),
+        }
+    }
+
+    pub fn interpret_expression(&mut self, expression: Expression) -> Result<String, errors::Error> {
         let result = self.evaluate(&expression)?;
 
         Ok(result.to_string())
     }
 
-    pub fn interpret(&self, statements: Vec<Statement>) -> Result<(), errors::Error> {
+    pub fn interpret(&mut self, statements: Vec<Statement>) -> Result<(), errors::Error> {
         for statement in statements {
             self.execute(&statement)?;
         }
@@ -26,11 +37,11 @@ impl AstInterpreter {
         Ok(())
     }
 
-    fn execute(&self, statement: &Statement) -> Result<(), errors::Error> {
+    fn execute(&mut self, statement: &Statement) -> Result<(), errors::Error> {
         statement.accept(self)
     }
 
-    fn execute_block(&self, block: &Block) -> Result<(), errors::Error> {
+    fn execute_block(&mut self, block: &Block) -> Result<(), errors::Error> {
         // create new environment
         let mut result = Ok(());
 
@@ -44,15 +55,26 @@ impl AstInterpreter {
         result
     }
 
-    fn evaluate(&self, expression: &Expression) -> Result<Object, errors::Error> {
+    fn evaluate(&mut self, expression: &Expression) -> Result<Object, errors::Error> {
         expression.accept::<Result<Object, errors::Error>>(self)
+    }
+
+    pub fn print_environment(&self) {
+        let environment = Arc::clone(&self.environment);
+        let env_reader = environment.read();
+
+        if let Ok(env_reader) = env_reader {
+            println!("=== Environment ===");
+            println!("{}", (*env_reader).to_string());
+            println!("===================");
+        }
     }
 }
 
 impl StatementVisitor for AstInterpreter {
     type Output = Result<(), errors::Error>;
 
-    fn visit_if(&self, if_statement: &super::statement::IfStatement) -> Self::Output {
+    fn visit_if(&mut self, if_statement: &super::statement::IfStatement) -> Self::Output {
         let condition = self.evaluate(&if_statement.condition)?;
 
         if condition.is_truthy() {
@@ -66,7 +88,7 @@ impl StatementVisitor for AstInterpreter {
         Ok(())
     }
 
-    fn visit_while(&self, while_loop: &super::statement::WhileLoop) -> Self::Output {
+    fn visit_while(&mut self, while_loop: &super::statement::WhileLoop) -> Self::Output {
         while self.evaluate(&while_loop.condition)?.is_truthy() {
             self.execute(&while_loop.body)?;
         }
@@ -74,34 +96,50 @@ impl StatementVisitor for AstInterpreter {
         Ok(())
     }
 
-    fn visit_block(&self, block: &super::statement::Block) -> Self::Output {
+    fn visit_block(&mut self, block: &super::statement::Block) -> Self::Output {
         self.execute_block(block)
     }
 
     fn visit_function_statement(
-        &self,
+        &mut self,
         function_statement: &super::statement::function::FunctionStatement,
     ) -> Self::Output {
         todo!()
     }
 
-    fn visit_return(&self, return_statement: &Option<Expression>) -> Self::Output {
+    fn visit_return(&mut self, return_statement: &Option<Expression>) -> Self::Output {
         todo!()
     }
 
     fn visit_var_declaration(
-        &self,
+        &mut self,
         var_declaration: &super::statement::declaration::VariableDeclaration,
     ) -> Self::Output {
-        todo!()
+        let mut value = Arc::new(RwLock::new(Object::None));
+
+        if let Some(initializer) = &var_declaration.initializer {
+            let initializer = self.evaluate(initializer)?;
+            value = Arc::new(RwLock::new(initializer.clone()));
+        }
+
+        let env_writer = self.environment.write();
+        if let Ok(mut env_writer) = env_writer {
+            (*env_writer).declare_value(var_declaration.name.object.to_string().as_str(), value)
+        } else {
+            return Err(errors::Error::RuntimeError(
+                env_writer.unwrap_err().to_string(),
+            ));
+        }
+
+        Ok(())
     }
 
-    fn visit_expression_statement(&self, expression_statement: &Expression) -> Self::Output {
+    fn visit_expression_statement(&mut self, expression_statement: &Expression) -> Self::Output {
         self.evaluate(expression_statement)?;
         Ok(())
     }
 
-    fn visit_none(&self) -> Self::Output {
+    fn visit_none(&mut self) -> Self::Output {
         Err(errors::Error::InterpretError(
             "Cannot execute a nil statement".to_string(),
         ))
@@ -111,7 +149,7 @@ impl StatementVisitor for AstInterpreter {
 impl ExpressionVisitor for AstInterpreter {
     type Output = Result<Object, errors::Error>;
 
-    fn visit_binary(&self, binary: &super::expression::binary::Binary) -> Self::Output {
+    fn visit_binary(&mut self, binary: &super::expression::binary::Binary) -> Self::Output {
         let left = self.evaluate(&binary.left)?;
         let right = self.evaluate(&binary.right)?;
 
@@ -204,7 +242,7 @@ impl ExpressionVisitor for AstInterpreter {
         }
     }
 
-    fn visit_unary(&self, unary: &super::expression::unary::Unary) -> Self::Output {
+    fn visit_unary(&mut self, unary: &super::expression::unary::Unary) -> Self::Output {
         let right = self.evaluate(&unary.right)?;
 
         match unary.operator.token_type {
@@ -223,55 +261,52 @@ impl ExpressionVisitor for AstInterpreter {
         }
     }
 
-    fn visit_grouping(&self, grouping: &super::expression::grouping::Grouping) -> Self::Output {
+    fn visit_grouping(&mut self, grouping: &super::expression::grouping::Grouping) -> Self::Output {
         self.evaluate(&grouping.expression)
     }
 
-    fn visit_literal(&self, literal: &super::expression::literal::Literal) -> Self::Output {
+    fn visit_literal(&mut self, literal: &super::expression::literal::Literal) -> Self::Output {
         Ok(literal.object.clone())
     }
 
-    fn visit_function_call(
-        &self,
-        function: &super::expression::function_call::FunctionCall,
+    fn visit_call(
+        &mut self,
+        call: &super::expression::call::Call,
     ) -> Self::Output {
-        let id = function.function_id.to_string();
-        if id.as_str() == "print" {
-            println!("{}", self.evaluate(&function.argument)?);
-            return Ok(Object::None);
+        let callee = self.evaluate(&call.callee)?;
+        let mut arguments = Vec::new();
+
+        for argument in &call.arguments {
+            arguments.push(self.evaluate(argument)?);
         }
 
-        /* if let Object::Number(argument) = self.evaluate(&function.argument)? {
-            let answer = match id.as_str() {
-                "sin" => argument.sin(),
-                "cos" => argument.cos(),
-                "tan" => argument.tan(),
-                "ln" => argument.ln(),
-                "log" => argument.log10(),
-                "sqrt" => argument.sqrt(),
+        if let Object::Callable(callable) = callee {
+            if callable.arity() != arguments.len() as i8 && callable.arity() != -1 {
+                return Err(errors::Error::intepret_error("too many function arguments"))
+            }
 
-                _ => return Err(errors::Error::intepret_error(&format!("No function named: {}", id))),
-            };
+            return callable.call(self, &arguments);
+        }
 
-            return Ok(Object::Number(answer));
-        } */
+        
 
         Err(errors::Error::intepret_error("undefined function"))
     }
 
-    fn visit_variable(&self, variable: &super::expression::variable::Variable) -> Self::Output {
+    fn visit_variable(&mut self, variable: &super::expression::variable::Variable) -> Self::Output {
         todo!()
     }
 
-    fn visit_assign(&self, assign: &super::statement::assignment::Assign) -> Self::Output {
+    fn visit_assign(&mut self, assign: &super::statement::assignment::Assign) -> Self::Output {
         todo!()
     }
 
-    fn visit_get(&self, get: &super::statement::assignment::Get) -> Self::Output {
+    fn visit_get(&mut self, get: &super::statement::assignment::Get) -> Self::Output {
         todo!()
     }
 
-    fn visit_set(&self, set: &super::statement::assignment::Set) -> Self::Output {
+    fn visit_set(&mut self, set: &super::statement::assignment::Set) -> Self::Output {
         todo!()
     }
+
 }

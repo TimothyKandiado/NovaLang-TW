@@ -1,15 +1,21 @@
+use std::string::ParseError;
+
 use crate::language::{
     errors,
-    scanner::token::{Token, TokenType},
+    scanner::{
+        object::Object,
+        token::{Token, TokenType},
+    },
 };
 
 use super::{
     expression::{
-        binary::Binary, function_call::FunctionCall, grouping::Grouping, literal::Literal,
-        unary::Unary, Expression,
+        binary::Binary, call::Call, grouping::Grouping, literal::Literal,
+        unary::Unary, Expression, self,
     },
     statement::{
-        assignment::{Assign, Set},
+        self,
+        assignment::{Assign, Set, Get},
         declaration::VariableDeclaration,
         function::FunctionStatement,
         Block, IfStatement, Statement, WhileLoop,
@@ -159,11 +165,7 @@ impl AstParser {
     }
 
     fn if_statement(&mut self) -> Result<Statement, errors::Error> {
-        //self.consume(TokenType::LeftParen, "Expected '(' after if")?;
         let condition = self.expression()?;
-        //self.consume(TokenType::RightParen, "Expect ')' after condition")?;
-
-        //self.consume(TokenType::NewLine, "Expect new line after condition")?;
 
         let then_branch = self.block_statement(&[TokenType::End, TokenType::Else], false)?;
         let mut else_branch = None;
@@ -404,21 +406,81 @@ impl AstParser {
         self.primary()
     }
 
-    fn primary(&mut self) -> Result<Expression, errors::Error> {
-        if self.match_tokens(&[TokenType::Number, TokenType::Identifier, TokenType::String]) {
-            let token = self.previous().clone();
-            if self.match_tokens(&[TokenType::LeftParen]) {
-                let function_id = token.object;
-                let arguments = self.expression()?;
-                self.consume(TokenType::RightParen, "Expect ')' after function call")?;
+    fn call(&mut self) -> Result<Expression, errors::Error> {
+        let expression = self.primary()?;
 
-                return Ok(Expression::FunctionCall(Box::new(FunctionCall::new(
-                    function_id,
-                    arguments,
-                ))));
+        loop {
+            if self.match_tokens(&[TokenType::LeftParen]) {
+                return self.finish_call(expression)
+            } 
+            else if self.match_tokens(&[TokenType::Dot]) {
+                let name = self.consume(TokenType::Identifier, "Expect name after '.'")?;
+                return Ok(
+                    Expression::Get(
+                        Box::new(
+                            Get {
+                                object: expression,
+                                name: name.clone()
+                            }
+                        )
+                    )
+                )
+            }
+            else {
+                break;
+            }
+        }
+
+        Ok(expression)
+    }
+
+    fn finish_call(&mut self, callee: Expression) -> Result<Expression, errors::Error> {
+            let mut arguments = Vec::new();
+            if !self.check(TokenType::RightParen) {
+                loop {
+                    if arguments.len() > MAX_PARAMETERS {
+                        return Err(self.error(self.previous(), "Too many arguments"));
+                    }
+
+                    arguments.push(self.expression()?);
+                    if !self.match_tokens(&[TokenType::Comma]) {
+                        break;
+                    }
+                }
             }
 
+            let paren = self.consume(TokenType::RightParen, "Expect ')' after arguments")?.clone();
+            return Ok(
+                Expression::Call(
+                    Box::new(
+                        Call::new(callee, paren, arguments)
+                    )
+                )
+            )
+    }
+
+    fn primary(&mut self) -> Result<Expression, errors::Error> {
+        // handle identifiers and function calls
+        if self.match_tokens(&[TokenType::Identifier]) {
+            let token = self.previous().clone();
+
             return Ok(Expression::Literal(Literal::new(token.object)));
+        }
+
+        // Handle literals
+        if self.match_tokens(&[TokenType::Number, TokenType::String]) {
+            let token = self.previous().clone();
+
+            return Ok(Expression::Literal(Literal::new(token.object)));
+        }
+
+        // Handle booleans
+        if self.match_tokens(&[TokenType::True, TokenType::False]) {
+            let token = self.previous().clone();
+
+            return Ok(Expression::Literal(Literal::new(Object::Bool(
+                token.token_type == TokenType::True,
+            ))));
         }
 
         if self.match_tokens(&[TokenType::LeftParen]) {
@@ -487,5 +549,27 @@ impl AstParser {
 
     fn error(&self, token: &Token, message: &str) -> errors::Error {
         errors::Error::ParseError(format!("[line: {}] (ParseError) {} ", token.line, message))
+    }
+}
+
+pub fn debug_print_ast(statements: &Vec<Statement>) {
+    for statement in statements {
+        println!("{:?}", statement)
+    }
+}
+
+#[cfg(test)]
+mod test {
+    use crate::language::Scanner;
+
+    use super::{debug_print_ast, AstParser};
+
+    #[test]
+    fn test_parser_expression_statement() {
+        let source = "1+9\n\r";
+
+        let tokens = Scanner::new().scan_tokens(source).unwrap();
+        let ast = AstParser::new(tokens.clone()).parse_ast().unwrap();
+        debug_print_ast(&ast)
     }
 }

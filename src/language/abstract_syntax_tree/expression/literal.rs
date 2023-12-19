@@ -6,7 +6,7 @@ pub struct Literal {
 }
 
 impl Literal {
-    pub fn accept<T>(&self, visitor: &impl ExpressionVisitor<Output = T>) -> T {
+    pub fn accept<T>(&self, visitor: &mut impl ExpressionVisitor<Output = T>) -> T {
         visitor.visit_literal(self)
     }
 

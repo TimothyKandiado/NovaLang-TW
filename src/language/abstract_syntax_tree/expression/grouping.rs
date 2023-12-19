@@ -8,7 +8,7 @@ pub struct Grouping {
 }
 
 impl Grouping {
-    pub fn accept<T>(&self, visitor: &impl ExpressionVisitor<Output = T>) -> T {
+    pub fn accept<T>(&self, visitor: &mut impl ExpressionVisitor<Output = T>) -> T {
         visitor.visit_grouping(self)
     }
 

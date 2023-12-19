@@ -9,7 +9,7 @@ pub struct Unary {
 }
 
 impl Unary {
-    pub fn accept<T>(&self, visitor: &impl ExpressionVisitor<Output = T>) -> T {
+    pub fn accept<T>(&self, visitor: &mut impl ExpressionVisitor<Output = T>) -> T {
         visitor.visit_unary(self)
     }
 

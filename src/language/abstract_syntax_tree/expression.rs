@@ -1,16 +1,16 @@
 pub mod binary;
-pub mod function_call;
+pub mod call;
 pub mod grouping;
-pub mod literal;
 pub mod unary;
 pub mod variable;
+pub mod literal;
 
 use binary::Binary;
 use grouping::Grouping;
 use literal::Literal;
 use unary::Unary;
 
-use self::{function_call::FunctionCall, variable::Variable};
+use self::{call::Call, variable::Variable};
 
 use super::{
     statement::assignment::{Assign, Get, Set},
@@ -24,7 +24,7 @@ pub enum Expression {
     Unary(Box<Unary>),
     Literal(Literal),
     Grouping(Box<Grouping>),
-    FunctionCall(Box<FunctionCall>),
+    Call(Box<Call>),
     Variable(Box<Variable>),
     Assign(Box<Assign>),
     Get(Box<Get>),
@@ -32,13 +32,13 @@ pub enum Expression {
 }
 
 impl Expression {
-    pub fn accept<T>(&self, visitor: &impl ExpressionVisitor<Output = T>) -> T {
+    pub fn accept<T>(&self, visitor: &mut impl ExpressionVisitor<Output = T>) -> T {
         match self {
             Self::Binary(binary) => binary.accept(visitor),
             Self::Unary(unary) => unary.accept(visitor),
             Self::Grouping(grouping) => grouping.accept(visitor),
             Self::Literal(literal) => literal.accept(visitor),
-            Self::FunctionCall(math_function) => math_function.accept(visitor),
+            Self::Call(math_function) => math_function.accept(visitor),
             Self::Variable(variable_expression) => variable_expression.accept(visitor),
             Self::Assign(assign) => assign.accept(visitor),
             Self::Get(get) => get.accept(visitor),

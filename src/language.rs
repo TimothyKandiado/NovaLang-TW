@@ -5,9 +5,9 @@ mod scanner;
 
 pub use scanner::token::debug_print_tokens;
 pub use scanner::Scanner;
+pub use abstract_syntax_tree::{interpreter::AstInterpreter, parser::AstParser};
 
 use crate::language::{
-    abstract_syntax_tree::{interpreter::AstInterpreter, parser::AstParser},
     bytecode::interpreter::BytecodeInterpreter,
 };
 
@@ -20,7 +20,7 @@ pub fn interpret(source: &str) -> Result<(), errors::Error> {
     let statements = generate_parsed_ast(source)?;
     //println!("Expression: {:?}", expression);
 
-    let interpreter = AstInterpreter {};
+    let mut interpreter = AstInterpreter::new();
     //println!("{:?}", &statements);
     interpreter.interpret(statements)?;
     Ok(())
@@ -38,11 +38,11 @@ pub fn interpret_with_bytecode(source: &str) -> Result<String, errors::Error> {
     Ok(result.to_string()) */
 }
 
-fn generate_parsed_ast(source: &str) -> Result<Vec<Statement>, errors::Error> {
+pub fn generate_parsed_ast(source: &str) -> Result<Vec<Statement>, errors::Error> {
     let scanner = Scanner::new();
     //println!("source:\n{}", source);
     let tokens = scanner.scan_tokens(source)?;
 
-    let mut ast_parser = AstParser::new(tokens);
+    let ast_parser = AstParser::new(tokens);
     ast_parser.parse_ast()
 }

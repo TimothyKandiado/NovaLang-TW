@@ -10,7 +10,7 @@ pub struct Assign {
 }
 
 impl Assign {
-    pub fn accept<T>(&self, visitor: &impl ExpressionVisitor<Output = T>) -> T {
+    pub fn accept<T>(&self, visitor: &mut impl ExpressionVisitor<Output = T>) -> T {
         visitor.visit_assign(self)
     }
 }
@@ -22,7 +22,7 @@ pub struct Get {
 }
 
 impl Get {
-    pub fn accept<T>(&self, visitor: &impl ExpressionVisitor<Output = T>) -> T {
+    pub fn accept<T>(&self, visitor: &mut impl ExpressionVisitor<Output = T>) -> T {
         visitor.visit_get(self)
     }
 }
@@ -35,7 +35,7 @@ pub struct Set {
 }
 
 impl Set {
-    pub fn accept<T>(&self, visitor: &impl ExpressionVisitor<Output = T>) -> T {
+    pub fn accept<T>(&self, visitor: &mut impl ExpressionVisitor<Output = T>) -> T {
         visitor.visit_set(self)
     }
 }

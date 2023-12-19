@@ -28,7 +28,7 @@ pub enum Statement {
 }
 
 impl Statement {
-    pub fn accept<T>(&self, visitor: &impl StatementVisitor<Output = T>) -> T {
+    pub fn accept<T>(&self, visitor: &mut impl StatementVisitor<Output = T>) -> T {
         match self {
             Self::None => visitor.visit_none(),
             Self::If(if_statement) => visitor.visit_if(if_statement),
