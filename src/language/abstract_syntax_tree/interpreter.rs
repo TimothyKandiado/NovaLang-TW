@@ -12,7 +12,7 @@ use super::{
 use crate::language::{
     errors,
     scanner::{
-        object::{Callable, NativeCall, Object},
+        object::{Callable, NativeCall, Object, WrappedObject},
         token::TokenType,
     },
 };
@@ -41,8 +41,8 @@ impl AstInterpreter {
 
     fn load_native_functions(environment: &mut Environment) {
         let println = |_interpreter: &mut AstInterpreter,
-                       arguments: &Vec<Arc<RwLock<Object>>>|
-         -> Result<Arc<RwLock<Object>>, errors::Error> {
+                       arguments: &Vec<WrappedObject>|
+         -> Result<WrappedObject, errors::Error> {
             for argument in arguments {
                 let binding = argument.read();
                 let argument = binding.unwrap();
@@ -58,8 +58,8 @@ impl AstInterpreter {
         environment.declare_value("println", println_object.wrap());
 
         let print = |_interpreter: &mut AstInterpreter,
-                     arguments: &Vec<Arc<RwLock<Object>>>|
-         -> Result<Arc<RwLock<Object>>, errors::Error> {
+                     arguments: &Vec<WrappedObject>|
+         -> Result<WrappedObject, errors::Error> {
             for argument in arguments {
                 let binding = argument.read();
                 let argument = binding.unwrap();
@@ -110,8 +110,8 @@ impl AstInterpreter {
         result
     }
 
-    fn evaluate(&mut self, expression: &Expression) -> Result<Arc<RwLock<Object>>, errors::Error> {
-        expression.accept::<Result<Arc<RwLock<Object>>, errors::Error>>(self)
+    fn evaluate(&mut self, expression: &Expression) -> Result<WrappedObject, errors::Error> {
+        expression.accept::<Result<WrappedObject, errors::Error>>(self)
     }
 
     pub fn print_environment(&self) {
@@ -213,7 +213,7 @@ impl StatementVisitor for AstInterpreter {
 }
 
 impl ExpressionVisitor for AstInterpreter {
-    type Output = Result<Arc<RwLock<Object>>, errors::Error>;
+    type Output = Result<WrappedObject, errors::Error>;
 
     fn visit_binary(&mut self, binary: &super::expression::binary::Binary) -> Self::Output {
         let left_binding = self.evaluate(&binary.left)?;

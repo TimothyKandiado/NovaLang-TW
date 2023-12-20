@@ -7,6 +7,8 @@ use interpreter::AstInterpreter;
 
 use crate::language::{abstract_syntax_tree::interpreter, errors};
 
+pub type WrappedObject = Arc<RwLock<Object>>;
+
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Object {
     None,
@@ -25,7 +27,7 @@ impl Object {
         }
     }
 
-    pub fn wrap(self) -> Arc<RwLock<Self>> {
+    pub fn wrap(self) -> WrappedObject {
         Arc::new(RwLock::new(self))
     }
 }
@@ -59,8 +61,8 @@ impl Callable {
     pub fn call(
         &self,
         interpreter: &mut AstInterpreter,
-        arguments: &Vec<Arc<RwLock<Object>>>,
-    ) -> Result<Arc<RwLock<Object>>, errors::Error> {
+        arguments: &Vec<WrappedObject>,
+    ) -> Result<WrappedObject, errors::Error> {
         match self {
             Self::NativeCall(native_call) => native_call.call(interpreter, arguments),
         }
@@ -72,8 +74,8 @@ pub struct NativeCall {
     pub arity: i8,
     pub function: fn(
         interpreter: &mut AstInterpreter,
-        arguments: &Vec<Arc<RwLock<Object>>>,
-    ) -> Result<Arc<RwLock<Object>>, errors::Error>,
+        arguments: &Vec<WrappedObject>,
+    ) -> Result<WrappedObject, errors::Error>,
 }
 
 impl NativeCall {
@@ -81,8 +83,8 @@ impl NativeCall {
         arity: i8,
         function: fn(
             interpreter: &mut AstInterpreter,
-            arguments: &Vec<Arc<RwLock<Object>>>,
-        ) -> Result<Arc<RwLock<Object>>, errors::Error>,
+            arguments: &Vec<WrappedObject>,
+        ) -> Result<WrappedObject, errors::Error>,
     ) -> Self {
         Self { arity, function }
     }
@@ -93,8 +95,8 @@ impl NativeCall {
     pub fn call(
         &self,
         interpreter: &mut AstInterpreter,
-        arguments: &Vec<Arc<RwLock<Object>>>,
-    ) -> Result<Arc<RwLock<Object>>, errors::Error> {
+        arguments: &Vec<WrappedObject>,
+    ) -> Result<WrappedObject, errors::Error> {
         (self.function)(interpreter, arguments)
     }
 }
