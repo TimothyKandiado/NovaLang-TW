@@ -129,7 +129,7 @@ impl Scanner {
             }
 
             x if x.is_ascii_digit() => self.scan_number(),
-            x if x.is_alphabetic() => self.scan_identifier(),
+            x if x.is_alphabetic() || x == '_' => self.scan_identifier(),
 
             _ => Err(errors::Error::ScanError(format!(
                 "Undefined character {}",
@@ -235,7 +235,7 @@ impl Scanner {
     }
 
     fn scan_identifier(&mut self) -> Result<Token, errors::Error> {
-        while !self.is_at_end() && self.peek().is_alphabetic() {
+        while !self.is_at_end() && (self.peek().is_ascii_alphanumeric() || self.peek() == '_') {
             self.advance();
         }
 
@@ -271,7 +271,9 @@ impl Scanner {
         }
         self.consume('"', "Expect \" at end of string")?;
 
-        let string = self.source[self.start..self.current].to_string();
+        let mut string = self.source[self.start..self.current].to_string();
+        string.remove(0);
+        string.remove(string.len()-1);
 
         return Ok(Token {
             token_type: TokenType::String,
@@ -311,6 +313,13 @@ impl Scanner {
     }
 }
 
+fn is_identifier_start(character: char) -> bool {
+    character.is_alphabetic() || character == '_'
+}
+
+fn is_identifier_rest(character: char) -> bool {
+    is_identifier_rest(character) || character.is_digit(10)
+}
 #[cfg(test)]
 mod tests {
     use crate::language::scanner::object::Object;

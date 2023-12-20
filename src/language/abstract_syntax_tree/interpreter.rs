@@ -164,12 +164,30 @@ impl ExpressionVisitor for AstInterpreter {
 
         match binary.operator.token_type {
             TokenType::Plus => {
+                // add numbers
                 if let (Object::Number(left), Object::Number(right)) = ((&*left), &(*right)) {
                     return Ok(
                         Arc::new(RwLock::new(Object::Number(left + right))));
                 }
 
-                Err(errors::Error::intepret_error("Cannot add non numbers"))
+                // concanate strings
+                if let Object::String(left) = &*left {
+                    let right = (*right).to_string();
+
+                    return Ok(
+                        Arc::new(RwLock::new(Object::String(format!("{}{}", left, right))))
+                    );
+                }
+
+                if let Object::String(right) = &*right {
+                    let left = (*left).to_string();
+
+                    return Ok(
+                        Arc::new(RwLock::new(Object::String(format!("{}{}", left, right))))
+                    );
+                }
+
+                Err(errors::Error::intepret_error("Can only add numbers or concanate strings"))
             }
 
             TokenType::Minus => {
@@ -197,71 +215,71 @@ impl ExpressionVisitor for AstInterpreter {
             }
 
             TokenType::Or => {
-                let left_binding = self.evaluate(&binary.left)?;
+                /* let left_binding = self.evaluate(&binary.left)?;
                 let right_binding = self.evaluate(&binary.right)?;
 
                 let left = left_binding.read().unwrap();
-                let right = right_binding.read().unwrap();
+                let right = right_binding.read().unwrap(); */
 
                 Ok(Object::Bool((*left).is_truthy() || (*right).is_truthy()).wrap())
             }
 
             TokenType::And => {
-                let left_binding = self.evaluate(&binary.left)?;
+                /* let left_binding = self.evaluate(&binary.left)?;
                 let right_binding = self.evaluate(&binary.right)?;
 
                 let left = left_binding.read().unwrap();
-                let right = right_binding.read().unwrap();
+                let right = right_binding.read().unwrap(); */
 
                 Ok(Object::Bool((*left).is_truthy() && (*right).is_truthy()).wrap())
             }
 
             TokenType::EqualEqual => {
-                let left_binding = self.evaluate(&binary.left)?;
+                /* let left_binding = self.evaluate(&binary.left)?;
                 let right_binding = self.evaluate(&binary.right)?;
 
                 let left = left_binding.read().unwrap();
-                let right = right_binding.read().unwrap();
+                let right = right_binding.read().unwrap(); */
 
                 Ok(Object::Bool(*left == *right).wrap())
             }
 
             TokenType::Greater => {
-                let left_binding = self.evaluate(&binary.left)?;
+                /* let left_binding = self.evaluate(&binary.left)?;
                 let right_binding = self.evaluate(&binary.right)?;
 
                 let left = left_binding.read().unwrap();
-                let right = right_binding.read().unwrap();
+                let right = right_binding.read().unwrap(); */
 
                 Ok(Object::Bool(*left > *right).wrap())
             }
 
             TokenType::GreaterEqual => {
-                let left_binding = self.evaluate(&binary.left)?;
+                /* let left_binding = self.evaluate(&binary.left)?;
                 let right_binding = self.evaluate(&binary.right)?;
 
                 let left = left_binding.read().unwrap();
-                let right = right_binding.read().unwrap();
+                let right = right_binding.read().unwrap(); */
 
                 Ok(Object::Bool(*left >= *right).wrap())
             }
 
             TokenType::Less => {
-                let left_binding = self.evaluate(&binary.left)?;
+                /* let left_binding = self.evaluate(&binary.left)?;
                 let right_binding = self.evaluate(&binary.right)?;
 
                 let left = left_binding.read().unwrap();
-                let right = right_binding.read().unwrap();
+                let right = right_binding.read().unwrap(); */
 
                 Ok(Object::Bool(*left < *right).wrap())
             }
 
             TokenType::LessEqual => {
-                let left_binding = self.evaluate(&binary.left)?;
+                /* let left_binding = self.evaluate(&binary.left)?;
                 let right_binding = self.evaluate(&binary.right)?;
 
                 let left = left_binding.read().unwrap();
-                let right = right_binding.read().unwrap();
+                let right = right_binding.read().unwrap(); */
 
                 Ok(Object::Bool(*left <= *right).wrap())
             }
