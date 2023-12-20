@@ -59,7 +59,7 @@ impl Display for Token {
             "{}",
             match self.token_type {
                 TokenType::Number | TokenType::String | TokenType::Identifier => {
-                    format!("({:?} : {})", self.token_type, self.object.to_string())
+                    format!("({:?} : {})", self.token_type, self.object)
                 }
 
                 _ => {
@@ -74,9 +74,9 @@ pub fn debug_print_tokens(tokens: Vec<Token>) {
     for token in tokens {
         print!("{} ", &token);
         if TokenType::NewLine == token.token_type {
-            println!("");
+            println!();
         }
     }
 
-    println!("");
+    println!();
 }

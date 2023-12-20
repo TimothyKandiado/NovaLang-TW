@@ -22,6 +22,12 @@ pub struct AstInterpreter {
     environment: Arc<RwLock<Environment>>,
 }
 
+impl Default for AstInterpreter {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl AstInterpreter {
     pub fn new() -> Self {
         let mut global_env = Environment::new();
@@ -42,7 +48,7 @@ impl AstInterpreter {
                 let argument = binding.unwrap();
                 print!("{}", *argument);
             }
-            println!("");
+            println!();
 
             Ok(Object::None.wrap())
         };
@@ -114,7 +120,7 @@ impl AstInterpreter {
 
         if let Ok(env_reader) = env_reader {
             println!("=== Environment ===");
-            println!("{}", (*env_reader).to_string());
+            println!("{}", (*env_reader));
             println!("===================");
         }
     }
@@ -130,10 +136,8 @@ impl StatementVisitor for AstInterpreter {
         if let Ok(condition) = condition {
             if condition.is_truthy() {
                 self.execute(&if_statement.then_branch)?;
-            } else {
-                if let Some(else_branch) = &if_statement.else_branch {
-                    self.execute(else_branch)?;
-                }
+            } else if let Some(else_branch) = &if_statement.else_branch {
+                self.execute(else_branch)?;
             }
         } else {
             let _unused = condition.unwrap();
@@ -350,9 +354,9 @@ impl ExpressionVisitor for AstInterpreter {
             return Ok(object);
         }
 
-        return Err(errors::Error::RuntimeError(
+        Err(errors::Error::RuntimeError(
             "Error retrieving value".to_string(),
-        ));
+        ))
     }
 
     fn visit_assign(&mut self, assign: &super::statement::assignment::Assign) -> Self::Output {

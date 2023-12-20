@@ -46,7 +46,7 @@ impl AstParser {
         if self.error_occurred {
             return Err(errors::Error::ParseError("Unable to parse abstract syntax tree".to_string()));
         }
-        return Ok(statements);
+        Ok(statements)
     }
 
     fn declaration(&mut self) -> Statement {
@@ -130,11 +130,11 @@ impl AstParser {
         )?;
         let body = self.block_statement(&[TokenType::End], true)?;
 
-        return Ok(Statement::FunctionStatement(Box::new(FunctionStatement {
+        Ok(Statement::FunctionStatement(Box::new(FunctionStatement {
             name,
             parameters,
             body,
-        })));
+        })))
     }
 
     fn statement(&mut self) -> Result<Statement, errors::Error> {
@@ -158,7 +158,7 @@ impl AstParser {
             return self.block_statement(&[TokenType::End], true);
         }
 
-        return self.expression_statement();
+        self.expression_statement()
     }
 
     fn for_statement(&mut self) -> Result<Statement, errors::Error> {
@@ -178,11 +178,11 @@ impl AstParser {
             self.consume(TokenType::NewLine, "Expect new line after end")?;
         }
 
-        return Ok(Statement::If(Box::new(IfStatement {
+        Ok(Statement::If(Box::new(IfStatement {
             condition,
             then_branch,
             else_branch,
-        })));
+        })))
     }
 
     fn return_statement(&mut self) -> Result<Statement, errors::Error> {
@@ -194,7 +194,7 @@ impl AstParser {
             value = Some(self.expression()?);
         }
 
-        return Ok(Statement::ReturnStatement(value));
+        Ok(Statement::ReturnStatement(value))
     }
 
     fn while_statement(&mut self) -> Result<Statement, errors::Error> {
@@ -204,10 +204,10 @@ impl AstParser {
         //self.consume(TokenType::NewLine, "Expect new line after while condition")?;
 
         let body = self.block_statement(&[TokenType::End], true)?;
-        return Ok(Statement::WhileLoop(Box::new(WhileLoop {
+        Ok(Statement::WhileLoop(Box::new(WhileLoop {
             condition,
             body,
-        })));
+        })))
     }
 
     fn block_statement(
@@ -229,7 +229,7 @@ impl AstParser {
             self.consume(TokenType::NewLine, "expect newline after block")?;
         }
 
-        return Ok(Statement::Block(Block { statements }));
+        Ok(Statement::Block(Block { statements }))
     }
 
     fn expression_statement(&mut self) -> Result<Statement, errors::Error> {
@@ -444,9 +444,9 @@ impl AstParser {
         let paren = self
             .consume(TokenType::RightParen, "Expect ')' after arguments")?
             .clone();
-        return Ok(Expression::Call(Box::new(Call::new(
+        Ok(Expression::Call(Box::new(Call::new(
             callee, paren, arguments,
-        ))));
+        ))))
     }
 
     fn primary(&mut self) -> Result<Expression, errors::Error> {

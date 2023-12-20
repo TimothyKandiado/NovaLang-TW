@@ -108,7 +108,7 @@ impl Display for Environment {
                 values.push_str(&format!(
                     " [id: {} => value : {}]",
                     name,
-                    (*value).to_string()
+                    (*value)
                 ));
                 values.push('\n');
             }

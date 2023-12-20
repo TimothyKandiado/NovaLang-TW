@@ -290,11 +290,11 @@ impl Scanner {
         string.remove(0);
         string.remove(string.len() - 1);
 
-        return Ok(Token {
+        Ok(Token {
             token_type: TokenType::String,
             object: object::Object::String(string),
             line: self.line,
-        });
+        })
     }
 
     fn peek(&self) -> char {
@@ -333,7 +333,7 @@ fn is_identifier_start(character: char) -> bool {
 }
 
 fn is_identifier_rest(character: char) -> bool {
-    is_identifier_start(character) || character.is_digit(10)
+    is_identifier_start(character) || character.is_ascii_digit()
 }
 #[cfg(test)]
 mod tests {
