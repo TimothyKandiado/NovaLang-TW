@@ -21,7 +21,8 @@ pub enum TokenType {
     Fn,
     Class,
     Let,
-    Block,
+    Block, /// start of block of code
+    Delete, // delete values
     If,
     Else,
     For,
@@ -29,7 +30,6 @@ pub enum TokenType {
     NewLine,
     End,
     Return,
-    //Assign,
     True,
     False,
     And,
@@ -37,6 +37,7 @@ pub enum TokenType {
     Not,
     Equal,
     EqualEqual,
+    ColonEqual,
     NotEqual,
     GreaterEqual,
     LessEqual,

@@ -71,7 +71,14 @@ impl Scanner {
 
             '(' => Ok(simple_token(TokenType::LeftParen, self.line)),
             ')' => Ok(simple_token(TokenType::RightParen, self.line)),
-            ':' => Ok(simple_token(TokenType::Colon, self.line)),
+            ':' => {
+                if self.peek() == '=' {
+                    self.advance();
+                    return Ok(simple_token(TokenType::ColonEqual, self.line));
+                }
+                
+                Ok(simple_token(TokenType::Colon, self.line))
+            },
             '.' => Ok(simple_token(TokenType::Dot, self.line)),
             ',' => Ok(simple_token(TokenType::Comma, self.line)),
             '"' => self.scan_string(),
@@ -262,7 +269,8 @@ impl Scanner {
             "or" => Ok(simple_token(TokenType::Or, self.line)),
             "class" => Ok(simple_token(TokenType::Class, self.line)),
             "let" => Ok(simple_token(TokenType::Let, self.line)),
-            "Block" => Ok(simple_token(TokenType::Block, self.line)),
+            "block" => Ok(simple_token(TokenType::Block, self.line)),
+            "delete" => Ok(simple_token(TokenType::Delete, self.line)),
 
             _ => Ok(Token {
                 token_type: TokenType::Identifier,

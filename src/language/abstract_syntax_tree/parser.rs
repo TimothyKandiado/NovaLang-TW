@@ -23,13 +23,14 @@ use super::{
 pub struct AstParser {
     tokens: Vec<Token>,
     current: usize,
+    error_occurred: bool
 }
 
 const MAX_PARAMETERS: usize = 8;
 
 impl AstParser {
     pub fn new(tokens: Vec<Token>) -> Self {
-        Self { tokens, current: 0 }
+        Self { tokens, current: 0, error_occurred: false }
     }
 
     pub fn parse_ast(mut self) -> Result<Vec<Statement>, errors::Error> {
@@ -41,6 +42,9 @@ impl AstParser {
             }
 
             statements.push(statement)
+        }
+        if self.error_occurred {
+            return Err(errors::Error::ParseError("Unable to parse abstract syntax tree".to_string()));
         }
         return Ok(statements);
     }
@@ -428,7 +432,8 @@ impl AstParser {
         if !self.check(TokenType::RightParen) {
             loop {
                 if arguments.len() > MAX_PARAMETERS {
-                    return Err(self.error(self.previous(), "Too many arguments"));
+                    let previous = self.previous().clone();
+                    return Err(self.error(&previous, "Too many arguments"));
                 }
 
                 arguments.push(self.expression()?);
@@ -476,7 +481,8 @@ impl AstParser {
             return Ok(Expression::Grouping(Box::new(Grouping::new(expression))));
         }
 
-        Err(self.error(self.peek(), "Expect Expression"))
+        let current = self.peek().clone();
+        Err(self.error(&current, "Expect Expression"))
     }
 
     fn match_tokens(&mut self, token_types: &[TokenType]) -> bool {
@@ -506,8 +512,8 @@ impl AstParser {
         if self.check(token_type) {
             return Ok(self.advance());
         }
-
-        Err(self.error(self.previous(), error_message))
+        let previous = self.previous().clone();
+        Err(self.error(&previous, error_message))
     }
 
     fn check(&self, token_type: TokenType) -> bool {
@@ -534,7 +540,8 @@ impl AstParser {
         &self.tokens[self.current - 1]
     }
 
-    fn error(&self, token: &Token, message: &str) -> errors::Error {
+    fn error(&mut self, token: &Token, message: &str) -> errors::Error {
+        self.error_occurred = true;
         errors::Error::ParseError(format!("[line: {}] (ParseError) {} ", token.line, message))
     }
 }

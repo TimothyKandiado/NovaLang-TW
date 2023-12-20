@@ -74,6 +74,7 @@ impl Environment {
         Arc::new(RwLock::new(Object::None))
     }
 
+    #[allow(dead_code)]
     pub fn delete_value(&mut self, name: &str) {
         if self.values.contains_key(name) {
             self.values.borrow_mut().remove(name);
