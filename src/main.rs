@@ -43,7 +43,7 @@ fn repl() {
         let parsed_ast = parsed_ast.unwrap();
  
         let result = interpreter.interpret(parsed_ast);
-        interpreter.print_environment();
+        //interpreter.print_environment();
         if let Err(err) = result {
             println!("{}", err)
         }

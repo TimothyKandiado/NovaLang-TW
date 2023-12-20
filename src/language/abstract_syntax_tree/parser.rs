@@ -1,4 +1,3 @@
-use std::string::ParseError;
 
 use crate::language::{
     errors,
@@ -11,10 +10,9 @@ use crate::language::{
 use super::{
     expression::{
         binary::Binary, call::Call, grouping::Grouping, literal::Literal,
-        unary::Unary, Expression, self, variable::Variable,
+        unary::Unary, Expression, variable::Variable,
     },
     statement::{
-        self,
         assignment::{Assign, Set, Get},
         declaration::VariableDeclaration,
         function::FunctionStatement,
@@ -185,7 +183,7 @@ impl AstParser {
     }
 
     fn return_statement(&mut self) -> Result<Statement, errors::Error> {
-        let keyword = self.previous();
+        let _keyword = self.previous();
 
         let mut value = None;
 
@@ -552,24 +550,7 @@ impl AstParser {
     }
 }
 
-pub fn debug_print_ast(statements: &Vec<Statement>) {
-    for statement in statements {
-        println!("{:?}", statement)
-    }
-}
-
 #[cfg(test)]
 mod test {
-    use crate::language::Scanner;
-
-    use super::{debug_print_ast, AstParser};
-
-    #[test]
-    fn test_parser_expression_statement() {
-        let source = "1+9\n\r";
-
-        let tokens = Scanner::new().scan_tokens(source).unwrap();
-        let ast = AstParser::new(tokens.clone()).parse_ast().unwrap();
-        debug_print_ast(&ast)
-    }
+    
 }

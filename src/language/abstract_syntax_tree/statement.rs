@@ -9,8 +9,6 @@ pub use block::Block;
 pub use if_statement::IfStatement;
 pub use while_loop::WhileLoop;
 
-use crate::language::errors;
-
 use self::{declaration::VariableDeclaration, function::FunctionStatement};
 
 use super::{expression::Expression, visitor::StatementVisitor};

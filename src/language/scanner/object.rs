@@ -4,6 +4,7 @@ use interpreter::AstInterpreter;
 
 use crate::language::{abstract_syntax_tree::interpreter, errors};
 
+
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Object {
     None,
@@ -53,25 +54,31 @@ impl Callable {
         }
     }
 
-    pub fn call(&self, _interpreter: &mut AstInterpreter, arguments: &Vec<Arc<RwLock<Object>>>) -> Result<Arc<RwLock<Object>>, errors::Error> {
+    pub fn call(&self, interpreter: &mut AstInterpreter, arguments: &Vec<Arc<RwLock<Object>>>) -> Result<Arc<RwLock<Object>>, errors::Error> {
         match self {
-            Self::NativeCall(native_call) => native_call.call(arguments)
+            Self::NativeCall(native_call) => native_call.call(interpreter, arguments)
         }
     }
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct NativeCall {
-    arity: i8,
-    function: fn(arguments: &Vec<Arc<RwLock<Object>>>) -> Result<Arc<RwLock<Object>>, errors::Error>
+    pub arity: i8,
+    pub function: fn(interpreter: &mut AstInterpreter, arguments: &Vec<Arc<RwLock<Object>>>) -> Result<Arc<RwLock<Object>>, errors::Error>
 }
 
 impl NativeCall {
+    pub fn new(arity: i8, function: fn(interpreter: &mut AstInterpreter, arguments: &Vec<Arc<RwLock<Object>>>) -> Result<Arc<RwLock<Object>>, errors::Error>) -> Self {
+        Self {
+            arity,
+            function
+        }
+    }
     pub fn arity(&self) -> i8 {
         self.arity
     }
 
-    pub fn call(&self, arguments: &Vec<Arc<RwLock<Object>>>) -> Result<Arc<RwLock<Object>>, errors::Error> {
-        (self.function)(arguments)
+    pub fn call(&self,interpreter: &mut AstInterpreter,  arguments: &Vec<Arc<RwLock<Object>>>) -> Result<Arc<RwLock<Object>>, errors::Error> {
+        (self.function)(interpreter, arguments)
     }
 }

@@ -1,4 +1,4 @@
-use std::{sync::{Arc, RwLock}, env};
+use std::{sync::{Arc, RwLock}, io::{self, Write}};
 
 use super::{
     environment::Environment,
@@ -8,7 +8,7 @@ use super::{
 };
 use crate::language::{
     errors,
-    scanner::{object::{Object, self}, token::TokenType},
+    scanner::{object::{Object, NativeCall, Callable}, token::TokenType},
 };
 
 /// A simple abstract syntax tree interpreter
@@ -18,9 +18,53 @@ pub struct AstInterpreter {
 
 impl AstInterpreter {
     pub fn new() -> Self {
+        let mut global_env = Environment::new();
+        AstInterpreter::load_native_functions(&mut global_env);
+
+        let global = Arc::new(RwLock::new(global_env));
         Self {
-            environment: Arc::new(RwLock::new(Environment::new())),
+            environment: Arc::new(RwLock::new(Environment::with_parent(global))),
         }
+    }
+
+    fn load_native_functions(environment: &mut Environment) {
+        let println = |_interpreter: &mut AstInterpreter, arguments: &Vec<Arc<RwLock<Object>>>| -> Result<Arc<RwLock<Object>>, errors::Error>  {
+            for argument in arguments {
+                let binding = argument.read();
+                let argument = binding.unwrap();
+                print!("{}", *argument);
+            }
+            println!("");
+
+            Ok(Object::None.wrap())
+        };
+
+        let println_object = Object::Callable(
+            Callable::NativeCall(
+                NativeCall::new(-1, println)
+            )
+        );
+
+        environment.declare_value("println", println_object.wrap());
+
+        let print = |_interpreter: &mut AstInterpreter, arguments: &Vec<Arc<RwLock<Object>>>| -> Result<Arc<RwLock<Object>>, errors::Error>  {
+            for argument in arguments {
+                let binding = argument.read();
+                let argument = binding.unwrap();
+                print!("{}", *argument);
+            }
+            let _ = io::stdout().flush();
+
+            Ok(Object::None.wrap())
+        };
+
+        let print_object = Object::Callable(
+            Callable::NativeCall(
+                NativeCall::new(-1, print)
+            )
+        );
+
+        environment.declare_value("print", print_object.wrap())
     }
 
 /*     pub fn interpret_expression(&mut self, expression: Expression) -> Result<String, errors::Error> {
@@ -88,7 +132,7 @@ impl StatementVisitor for AstInterpreter {
             }
         } 
         else {
-            condition.unwrap();
+            let _unused = condition.unwrap();
         }
 
         Ok(())
@@ -108,12 +152,12 @@ impl StatementVisitor for AstInterpreter {
 
     fn visit_function_statement(
         &mut self,
-        function_statement: &super::statement::function::FunctionStatement,
+        _function_statement: &super::statement::function::FunctionStatement,
     ) -> Self::Output {
         todo!()
     }
 
-    fn visit_return(&mut self, return_statement: &Option<Expression>) -> Self::Output {
+    fn visit_return(&mut self, _return_statement: &Option<Expression>) -> Self::Output {
         todo!()
     }
 
@@ -372,11 +416,11 @@ impl ExpressionVisitor for AstInterpreter {
         Ok(Object::None.wrap())
     }
 
-    fn visit_get(&mut self, get: &super::statement::assignment::Get) -> Self::Output {
+    fn visit_get(&mut self, _get: &super::statement::assignment::Get) -> Self::Output {
         todo!()
     }
 
-    fn visit_set(&mut self, set: &super::statement::assignment::Set) -> Self::Output {
+    fn visit_set(&mut self, _set: &super::statement::assignment::Set) -> Self::Output {
         todo!()
     }
 

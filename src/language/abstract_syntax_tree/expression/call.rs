@@ -1,5 +1,5 @@
 use super::Expression;
-use crate::language::{abstract_syntax_tree::visitor::ExpressionVisitor, scanner::{object::Object, token::Token}};
+use crate::language::{abstract_syntax_tree::visitor::ExpressionVisitor, scanner::token::Token};
 
 #[derive(Debug, Clone)]
 pub struct Call {
