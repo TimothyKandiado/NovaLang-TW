@@ -8,7 +8,10 @@ use super::{chunk::Chunk, code::OpCode};
 pub struct AstToBytecode {}
 
 impl AstToBytecode {
-    pub fn convert_expression_to_bytecode(&mut self, expression: &Expression) -> Result<Chunk, String> {
+    pub fn convert_expression_to_bytecode(
+        &mut self,
+        expression: &Expression,
+    ) -> Result<Chunk, String> {
         let mut chunk = self.evaluate(expression)?;
         chunk.instructions.push(OpCode::Return);
         Ok(chunk)

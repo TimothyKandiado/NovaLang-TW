@@ -1,4 +1,3 @@
-
 use crate::language::{
     errors,
     scanner::{
@@ -9,11 +8,11 @@ use crate::language::{
 
 use super::{
     expression::{
-        binary::Binary, call::Call, grouping::Grouping, literal::Literal,
-        unary::Unary, Expression, variable::Variable,
+        binary::Binary, call::Call, grouping::Grouping, literal::Literal, unary::Unary,
+        variable::Variable, Expression,
     },
     statement::{
-        assignment::{Assign, Set, Get},
+        assignment::{Assign, Get, Set},
         declaration::VariableDeclaration,
         function::FunctionStatement,
         Block, IfStatement, Statement, WhileLoop,
@@ -409,22 +408,14 @@ impl AstParser {
 
         loop {
             if self.match_tokens(&[TokenType::LeftParen]) {
-                return self.finish_call(expression)
-            } 
-            else if self.match_tokens(&[TokenType::Dot]) {
+                return self.finish_call(expression);
+            } else if self.match_tokens(&[TokenType::Dot]) {
                 let name = self.consume(TokenType::Identifier, "Expect name after '.'")?;
-                return Ok(
-                    Expression::Get(
-                        Box::new(
-                            Get {
-                                object: expression,
-                                name: name.clone()
-                            }
-                        )
-                    )
-                )
-            }
-            else {
+                return Ok(Expression::Get(Box::new(Get {
+                    object: expression,
+                    name: name.clone(),
+                })));
+            } else {
                 break;
             }
         }
@@ -433,28 +424,26 @@ impl AstParser {
     }
 
     fn finish_call(&mut self, callee: Expression) -> Result<Expression, errors::Error> {
-            let mut arguments = Vec::new();
-            if !self.check(TokenType::RightParen) {
-                loop {
-                    if arguments.len() > MAX_PARAMETERS {
-                        return Err(self.error(self.previous(), "Too many arguments"));
-                    }
+        let mut arguments = Vec::new();
+        if !self.check(TokenType::RightParen) {
+            loop {
+                if arguments.len() > MAX_PARAMETERS {
+                    return Err(self.error(self.previous(), "Too many arguments"));
+                }
 
-                    arguments.push(self.expression()?);
-                    if !self.match_tokens(&[TokenType::Comma]) {
-                        break;
-                    }
+                arguments.push(self.expression()?);
+                if !self.match_tokens(&[TokenType::Comma]) {
+                    break;
                 }
             }
+        }
 
-            let paren = self.consume(TokenType::RightParen, "Expect ')' after arguments")?.clone();
-            return Ok(
-                Expression::Call(
-                    Box::new(
-                        Call::new(callee, paren, arguments)
-                    )
-                )
-            )
+        let paren = self
+            .consume(TokenType::RightParen, "Expect ')' after arguments")?
+            .clone();
+        return Ok(Expression::Call(Box::new(Call::new(
+            callee, paren, arguments,
+        ))));
     }
 
     fn primary(&mut self) -> Result<Expression, errors::Error> {
@@ -551,6 +540,4 @@ impl AstParser {
 }
 
 #[cfg(test)]
-mod test {
-    
-}
+mod test {}

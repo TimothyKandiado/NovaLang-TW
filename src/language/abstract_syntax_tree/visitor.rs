@@ -1,7 +1,7 @@
 use super::{
     expression::{
-        binary::Binary, call::Call, grouping::Grouping, literal::Literal,
-        unary::Unary, variable::Variable, Expression,
+        binary::Binary, call::Call, grouping::Grouping, literal::Literal, unary::Unary,
+        variable::Variable, Expression,
     },
     statement::{
         assignment::{Assign, Get, Set},

@@ -1,4 +1,7 @@
-use std::{fmt::Display, sync::{Arc, RwLock}};
+use std::{
+    fmt::Display,
+    sync::{Arc, RwLock},
+};
 
 use interpreter::AstInterpreter;
 
@@ -10,7 +13,7 @@ pub enum Object {
     Bool(bool),
     Number(f64),
     String(String),
-    Callable(Callable)
+    Callable(Callable),
 }
 
 impl Object {
@@ -45,17 +48,21 @@ impl Display for Object {
 pub enum Callable {
     NativeCall(NativeCall),
 }
- 
+
 impl Callable {
     pub fn arity(&self) -> i8 {
         match self {
-            Self::NativeCall(native_call) => native_call.arity
+            Self::NativeCall(native_call) => native_call.arity,
         }
     }
 
-    pub fn call(&self, interpreter: &mut AstInterpreter, arguments: &Vec<Arc<RwLock<Object>>>) -> Result<Arc<RwLock<Object>>, errors::Error> {
+    pub fn call(
+        &self,
+        interpreter: &mut AstInterpreter,
+        arguments: &Vec<Arc<RwLock<Object>>>,
+    ) -> Result<Arc<RwLock<Object>>, errors::Error> {
         match self {
-            Self::NativeCall(native_call) => native_call.call(interpreter, arguments)
+            Self::NativeCall(native_call) => native_call.call(interpreter, arguments),
         }
     }
 }
@@ -63,21 +70,31 @@ impl Callable {
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct NativeCall {
     pub arity: i8,
-    pub function: fn(interpreter: &mut AstInterpreter, arguments: &Vec<Arc<RwLock<Object>>>) -> Result<Arc<RwLock<Object>>, errors::Error>
+    pub function: fn(
+        interpreter: &mut AstInterpreter,
+        arguments: &Vec<Arc<RwLock<Object>>>,
+    ) -> Result<Arc<RwLock<Object>>, errors::Error>,
 }
 
 impl NativeCall {
-    pub fn new(arity: i8, function: fn(interpreter: &mut AstInterpreter, arguments: &Vec<Arc<RwLock<Object>>>) -> Result<Arc<RwLock<Object>>, errors::Error>) -> Self {
-        Self {
-            arity,
-            function
-        }
+    pub fn new(
+        arity: i8,
+        function: fn(
+            interpreter: &mut AstInterpreter,
+            arguments: &Vec<Arc<RwLock<Object>>>,
+        ) -> Result<Arc<RwLock<Object>>, errors::Error>,
+    ) -> Self {
+        Self { arity, function }
     }
     pub fn arity(&self) -> i8 {
         self.arity
     }
 
-    pub fn call(&self,interpreter: &mut AstInterpreter,  arguments: &Vec<Arc<RwLock<Object>>>) -> Result<Arc<RwLock<Object>>, errors::Error> {
+    pub fn call(
+        &self,
+        interpreter: &mut AstInterpreter,
+        arguments: &Vec<Arc<RwLock<Object>>>,
+    ) -> Result<Arc<RwLock<Object>>, errors::Error> {
         (self.function)(interpreter, arguments)
     }
 }

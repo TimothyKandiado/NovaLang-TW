@@ -3,13 +3,11 @@ mod bytecode;
 mod errors;
 mod scanner;
 
+pub use abstract_syntax_tree::{interpreter::AstInterpreter, parser::AstParser};
 pub use scanner::token::debug_print_tokens;
 pub use scanner::Scanner;
-pub use abstract_syntax_tree::{interpreter::AstInterpreter, parser::AstParser};
 
-use crate::language::{
-    bytecode::interpreter::BytecodeInterpreter,
-};
+use crate::language::bytecode::interpreter::BytecodeInterpreter;
 
 use self::{
     abstract_syntax_tree::{expression::Expression, statement::Statement},

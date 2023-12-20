@@ -1,4 +1,7 @@
-use std::{sync::{Arc, RwLock}, io::{self, Write}};
+use std::{
+    io::{self, Write},
+    sync::{Arc, RwLock},
+};
 
 use super::{
     environment::Environment,
@@ -8,7 +11,10 @@ use super::{
 };
 use crate::language::{
     errors,
-    scanner::{object::{Object, NativeCall, Callable}, token::TokenType},
+    scanner::{
+        object::{Callable, NativeCall, Object},
+        token::TokenType,
+    },
 };
 
 /// A simple abstract syntax tree interpreter
@@ -28,7 +34,9 @@ impl AstInterpreter {
     }
 
     fn load_native_functions(environment: &mut Environment) {
-        let println = |_interpreter: &mut AstInterpreter, arguments: &Vec<Arc<RwLock<Object>>>| -> Result<Arc<RwLock<Object>>, errors::Error>  {
+        let println = |_interpreter: &mut AstInterpreter,
+                       arguments: &Vec<Arc<RwLock<Object>>>|
+         -> Result<Arc<RwLock<Object>>, errors::Error> {
             for argument in arguments {
                 let binding = argument.read();
                 let argument = binding.unwrap();
@@ -39,15 +47,13 @@ impl AstInterpreter {
             Ok(Object::None.wrap())
         };
 
-        let println_object = Object::Callable(
-            Callable::NativeCall(
-                NativeCall::new(-1, println)
-            )
-        );
+        let println_object = Object::Callable(Callable::NativeCall(NativeCall::new(-1, println)));
 
         environment.declare_value("println", println_object.wrap());
 
-        let print = |_interpreter: &mut AstInterpreter, arguments: &Vec<Arc<RwLock<Object>>>| -> Result<Arc<RwLock<Object>>, errors::Error>  {
+        let print = |_interpreter: &mut AstInterpreter,
+                     arguments: &Vec<Arc<RwLock<Object>>>|
+         -> Result<Arc<RwLock<Object>>, errors::Error> {
             for argument in arguments {
                 let binding = argument.read();
                 let argument = binding.unwrap();
@@ -58,11 +64,7 @@ impl AstInterpreter {
             Ok(Object::None.wrap())
         };
 
-        let print_object = Object::Callable(
-            Callable::NativeCall(
-                NativeCall::new(-1, print)
-            )
-        );
+        let print_object = Object::Callable(Callable::NativeCall(NativeCall::new(-1, print)));
 
         environment.declare_value("print", print_object.wrap())
     }
@@ -79,7 +81,11 @@ impl AstInterpreter {
         statement.accept(self)
     }
 
-    fn execute_block(&mut self, block: &Block, new_environment: Arc<RwLock<Environment>>) -> Result<(), errors::Error> {
+    fn execute_block(
+        &mut self,
+        block: &Block,
+        new_environment: Arc<RwLock<Environment>>,
+    ) -> Result<(), errors::Error> {
         // create new environment
         let mut result = Ok(());
         let previous_environment = Arc::clone(&self.environment);
@@ -119,7 +125,7 @@ impl StatementVisitor for AstInterpreter {
 
     fn visit_if(&mut self, if_statement: &super::statement::IfStatement) -> Self::Output {
         let condition = self.evaluate(&if_statement.condition)?;
-        
+
         let condition = condition.read();
         if let Ok(condition) = condition {
             if condition.is_truthy() {
@@ -129,8 +135,7 @@ impl StatementVisitor for AstInterpreter {
                     self.execute(else_branch)?;
                 }
             }
-        } 
-        else {
+        } else {
             let _unused = condition.unwrap();
         }
 
@@ -138,7 +143,12 @@ impl StatementVisitor for AstInterpreter {
     }
 
     fn visit_while(&mut self, while_loop: &super::statement::WhileLoop) -> Self::Output {
-        while self.evaluate(&while_loop.condition)?.read().unwrap().is_truthy() {
+        while self
+            .evaluate(&while_loop.condition)?
+            .read()
+            .unwrap()
+            .is_truthy()
+        {
             self.execute(&while_loop.body)?;
         }
 
@@ -148,7 +158,7 @@ impl StatementVisitor for AstInterpreter {
     fn visit_block(&mut self, block: &super::statement::Block) -> Self::Output {
         let previous_environment = Arc::clone(&self.environment);
         let new_environment = Arc::new(RwLock::new(Environment::with_parent(previous_environment)));
-        
+
         self.execute_block(block, new_environment)
     }
 
@@ -212,28 +222,31 @@ impl ExpressionVisitor for AstInterpreter {
             TokenType::Plus => {
                 // add numbers
                 if let (Object::Number(left), Object::Number(right)) = ((&*left), &(*right)) {
-                    return Ok(
-                        Arc::new(RwLock::new(Object::Number(left + right))));
+                    return Ok(Arc::new(RwLock::new(Object::Number(left + right))));
                 }
 
                 // concanate strings
                 if let Object::String(left) = &*left {
                     let right = (*right).to_string();
 
-                    return Ok(
-                        Arc::new(RwLock::new(Object::String(format!("{}{}", left, right))))
-                    );
+                    return Ok(Arc::new(RwLock::new(Object::String(format!(
+                        "{}{}",
+                        left, right
+                    )))));
                 }
 
                 if let Object::String(right) = &*right {
                     let left = (*left).to_string();
 
-                    return Ok(
-                        Arc::new(RwLock::new(Object::String(format!("{}{}", left, right))))
-                    );
+                    return Ok(Arc::new(RwLock::new(Object::String(format!(
+                        "{}{}",
+                        left, right
+                    )))));
                 }
 
-                Err(errors::Error::intepret_error("Can only add numbers or concanate strings"))
+                Err(errors::Error::intepret_error(
+                    "Can only add numbers or concanate strings",
+                ))
             }
 
             TokenType::Minus => {
@@ -260,40 +273,19 @@ impl ExpressionVisitor for AstInterpreter {
                 Err(errors::Error::intepret_error("Cannot multiply non numbers"))
             }
 
-            TokenType::Or => {
+            TokenType::Or => Ok(Object::Bool((*left).is_truthy() || (*right).is_truthy()).wrap()),
 
-                Ok(Object::Bool((*left).is_truthy() || (*right).is_truthy()).wrap())
-            }
+            TokenType::And => Ok(Object::Bool((*left).is_truthy() && (*right).is_truthy()).wrap()),
 
-            TokenType::And => {
+            TokenType::EqualEqual => Ok(Object::Bool(*left == *right).wrap()),
 
-                Ok(Object::Bool((*left).is_truthy() && (*right).is_truthy()).wrap())
-            }
+            TokenType::Greater => Ok(Object::Bool(*left > *right).wrap()),
 
-            TokenType::EqualEqual => {
+            TokenType::GreaterEqual => Ok(Object::Bool(*left >= *right).wrap()),
 
-                Ok(Object::Bool(*left == *right).wrap())
-            }
+            TokenType::Less => Ok(Object::Bool(*left < *right).wrap()),
 
-            TokenType::Greater => {
-
-                Ok(Object::Bool(*left > *right).wrap())
-            }
-
-            TokenType::GreaterEqual => {
-
-                Ok(Object::Bool(*left >= *right).wrap())
-            }
-
-            TokenType::Less => {
-
-                Ok(Object::Bool(*left < *right).wrap())
-            }
-
-            TokenType::LessEqual => {
-
-                Ok(Object::Bool(*left <= *right).wrap())
-            }
+            TokenType::LessEqual => Ok(Object::Bool(*left <= *right).wrap()),
 
             _ => Err(errors::Error::intepret_error(&format!(
                 "Undefined binary operation: {:?}",
@@ -330,11 +322,7 @@ impl ExpressionVisitor for AstInterpreter {
         Ok(literal.object.clone().wrap())
     }
 
-    fn visit_call(
-        &mut self,
-        call: &super::expression::call::Call,
-    ) -> Self::Output {
-
+    fn visit_call(&mut self, call: &super::expression::call::Call) -> Self::Output {
         let callee_binding = self.evaluate(&call.callee)?;
         let callee = callee_binding.read().unwrap();
 
@@ -346,13 +334,11 @@ impl ExpressionVisitor for AstInterpreter {
 
         if let Object::Callable(callable) = &(*callee) {
             if callable.arity() != arguments.len() as i8 && callable.arity() != -1 {
-                return Err(errors::Error::intepret_error("too many function arguments"))
+                return Err(errors::Error::intepret_error("too many function arguments"));
             }
 
             return callable.call(self, &arguments);
         }
-
-        
 
         Err(errors::Error::intepret_error("undefined function"))
     }
@@ -364,7 +350,9 @@ impl ExpressionVisitor for AstInterpreter {
             return Ok(object);
         }
 
-        return Err(errors::Error::RuntimeError("Error retrieving value".to_string()))
+        return Err(errors::Error::RuntimeError(
+            "Error retrieving value".to_string(),
+        ));
     }
 
     fn visit_assign(&mut self, assign: &super::statement::assignment::Assign) -> Self::Output {
@@ -374,10 +362,9 @@ impl ExpressionVisitor for AstInterpreter {
         if let Ok(mut env_writer) = env_writer {
             //let value = Arc::new(RwLock::new(value));
             (*env_writer).set_value(assign.name.object.to_string().as_str(), value)?;
-        }
-        else {
+        } else {
             let err = env_writer.unwrap_err();
-            return Err(errors::Error::RuntimeError(err.to_string()))
+            return Err(errors::Error::RuntimeError(err.to_string()));
         }
 
         Ok(Object::None.wrap())
@@ -390,5 +377,4 @@ impl ExpressionVisitor for AstInterpreter {
     fn visit_set(&mut self, _set: &super::statement::assignment::Set) -> Self::Output {
         todo!()
     }
-
 }

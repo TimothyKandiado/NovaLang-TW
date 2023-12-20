@@ -4,7 +4,7 @@ use std::{
     process::exit,
 };
 
-use tim::language::{self, AstInterpreter, generate_parsed_ast};
+use tim::language::{self, generate_parsed_ast, AstInterpreter};
 
 const PROMPT: &str = ">>";
 fn main() {
@@ -41,7 +41,7 @@ fn repl() {
             continue;
         }
         let parsed_ast = parsed_ast.unwrap();
- 
+
         let result = interpreter.interpret(parsed_ast);
         //interpreter.print_environment();
         if let Err(err) = result {

@@ -104,7 +104,11 @@ impl Display for Environment {
 
         for (name, value) in &self.values {
             if let Ok(value) = value.read() {
-                values.push_str(&format!(" [id: {} => value : {}]", name, (*value).to_string()));
+                values.push_str(&format!(
+                    " [id: {} => value : {}]",
+                    name,
+                    (*value).to_string()
+                ));
                 values.push('\n');
             }
         }

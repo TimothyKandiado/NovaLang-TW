@@ -280,7 +280,7 @@ impl Scanner {
 
         let mut string = self.source[self.start..self.current].to_string();
         string.remove(0);
-        string.remove(string.len()-1);
+        string.remove(string.len() - 1);
 
         return Ok(Token {
             token_type: TokenType::String,

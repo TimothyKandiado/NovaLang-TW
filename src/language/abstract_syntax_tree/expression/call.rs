@@ -13,7 +13,7 @@ impl Call {
         Self {
             callee,
             paren,
-            arguments
+            arguments,
         }
     }
     pub fn accept<T>(&self, visitor: &mut impl ExpressionVisitor<Output = T>) -> T {

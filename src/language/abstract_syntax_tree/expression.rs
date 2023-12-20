@@ -1,9 +1,9 @@
 pub mod binary;
 pub mod call;
 pub mod grouping;
+pub mod literal;
 pub mod unary;
 pub mod variable;
-pub mod literal;
 
 use binary::Binary;
 use grouping::Grouping;
