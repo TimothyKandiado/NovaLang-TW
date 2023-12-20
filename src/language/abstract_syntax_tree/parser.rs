@@ -410,18 +410,16 @@ impl AstParser {
     fn call(&mut self) -> Result<Expression, errors::Error> {
         let expression = self.primary()?;
 
-        loop {
-            if self.match_tokens(&[TokenType::LeftParen]) {
-                return self.finish_call(expression);
-            } else if self.match_tokens(&[TokenType::Dot]) {
-                let name = self.consume(TokenType::Identifier, "Expect name after '.'")?;
-                return Ok(Expression::Get(Box::new(Get {
-                    object: expression,
-                    name: name.clone(),
-                })));
-            } else {
-                break;
-            }
+        
+        if self.match_tokens(&[TokenType::LeftParen]) {
+            return self.finish_call(expression);
+        } 
+        else if self.match_tokens(&[TokenType::Dot]) {
+            let name = self.consume(TokenType::Identifier, "Expect name after '.'")?;
+            return Ok(Expression::Get(Box::new(Get {
+                object: expression,
+                name: name.clone(),
+            })));
         }
 
         Ok(expression)
