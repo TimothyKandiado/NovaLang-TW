@@ -67,12 +67,6 @@ impl AstInterpreter {
         environment.declare_value("print", print_object.wrap())
     }
 
-/*     pub fn interpret_expression(&mut self, expression: Expression) -> Result<String, errors::Error> {
-        let result = self.evaluate(&expression)?;
-
-        Ok(result.to_string())
-    } */
-
     pub fn interpret(&mut self, statements: Vec<Statement>) -> Result<(), errors::Error> {
         for statement in statements {
             self.execute(&statement)?;
@@ -85,9 +79,12 @@ impl AstInterpreter {
         statement.accept(self)
     }
 
-    fn execute_block(&mut self, block: &Block) -> Result<(), errors::Error> {
+    fn execute_block(&mut self, block: &Block, new_environment: Arc<RwLock<Environment>>) -> Result<(), errors::Error> {
         // create new environment
         let mut result = Ok(());
+        let previous_environment = Arc::clone(&self.environment);
+
+        self.environment = new_environment;
 
         for statement in &block.statements {
             result = self.execute(statement);
@@ -95,6 +92,8 @@ impl AstInterpreter {
                 break;
             }
         }
+
+        self.environment = previous_environment;
 
         result
     }
@@ -147,7 +146,10 @@ impl StatementVisitor for AstInterpreter {
     }
 
     fn visit_block(&mut self, block: &super::statement::Block) -> Self::Output {
-        self.execute_block(block)
+        let previous_environment = Arc::clone(&self.environment);
+        let new_environment = Arc::new(RwLock::new(Environment::with_parent(previous_environment)));
+        
+        self.execute_block(block, new_environment)
     }
 
     fn visit_function_statement(
@@ -259,71 +261,36 @@ impl ExpressionVisitor for AstInterpreter {
             }
 
             TokenType::Or => {
-                /* let left_binding = self.evaluate(&binary.left)?;
-                let right_binding = self.evaluate(&binary.right)?;
-
-                let left = left_binding.read().unwrap();
-                let right = right_binding.read().unwrap(); */
 
                 Ok(Object::Bool((*left).is_truthy() || (*right).is_truthy()).wrap())
             }
 
             TokenType::And => {
-                /* let left_binding = self.evaluate(&binary.left)?;
-                let right_binding = self.evaluate(&binary.right)?;
-
-                let left = left_binding.read().unwrap();
-                let right = right_binding.read().unwrap(); */
 
                 Ok(Object::Bool((*left).is_truthy() && (*right).is_truthy()).wrap())
             }
 
             TokenType::EqualEqual => {
-                /* let left_binding = self.evaluate(&binary.left)?;
-                let right_binding = self.evaluate(&binary.right)?;
-
-                let left = left_binding.read().unwrap();
-                let right = right_binding.read().unwrap(); */
 
                 Ok(Object::Bool(*left == *right).wrap())
             }
 
             TokenType::Greater => {
-                /* let left_binding = self.evaluate(&binary.left)?;
-                let right_binding = self.evaluate(&binary.right)?;
-
-                let left = left_binding.read().unwrap();
-                let right = right_binding.read().unwrap(); */
 
                 Ok(Object::Bool(*left > *right).wrap())
             }
 
             TokenType::GreaterEqual => {
-                /* let left_binding = self.evaluate(&binary.left)?;
-                let right_binding = self.evaluate(&binary.right)?;
-
-                let left = left_binding.read().unwrap();
-                let right = right_binding.read().unwrap(); */
 
                 Ok(Object::Bool(*left >= *right).wrap())
             }
 
             TokenType::Less => {
-                /* let left_binding = self.evaluate(&binary.left)?;
-                let right_binding = self.evaluate(&binary.right)?;
-
-                let left = left_binding.read().unwrap();
-                let right = right_binding.read().unwrap(); */
 
                 Ok(Object::Bool(*left < *right).wrap())
             }
 
             TokenType::LessEqual => {
-                /* let left_binding = self.evaluate(&binary.left)?;
-                let right_binding = self.evaluate(&binary.right)?;
-
-                let left = left_binding.read().unwrap();
-                let right = right_binding.read().unwrap(); */
 
                 Ok(Object::Bool(*left <= *right).wrap())
             }

@@ -153,6 +153,13 @@ impl Scanner {
                     self.advance();
                 }
 
+                '#' => {
+                    while !self.is_at_end() && self.peek() != '\n' {
+                        self.advance();
+                    }
+                    self.advance();
+                }
+
                 _ => break,
             }
         }

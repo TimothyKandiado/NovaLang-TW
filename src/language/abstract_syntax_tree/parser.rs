@@ -195,10 +195,10 @@ impl AstParser {
     }
 
     fn while_statement(&mut self) -> Result<Statement, errors::Error> {
-        self.consume(TokenType::LeftParen, "Expect '(' before condition")?;
+        //self.consume(TokenType::LeftParen, "Expect '(' before condition")?;
         let condition = self.expression()?;
-        self.consume(TokenType::RightParen, "Expect ')' after condition")?;
-        self.consume(TokenType::NewLine, "Expect new line after condition")?;
+        //self.consume(TokenType::RightParen, "Expect ')' after condition")?;
+        //self.consume(TokenType::NewLine, "Expect new line after while condition")?;
 
         let body = self.block_statement(&[TokenType::End], true)?;
         return Ok(Statement::WhileLoop(Box::new(WhileLoop {

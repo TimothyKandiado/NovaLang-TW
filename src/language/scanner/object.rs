@@ -4,7 +4,6 @@ use interpreter::AstInterpreter;
 
 use crate::language::{abstract_syntax_tree::interpreter, errors};
 
-
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub enum Object {
     None,
