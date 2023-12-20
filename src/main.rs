@@ -51,6 +51,18 @@ fn repl() {
 }
 
 fn run_file(path: &str) {
-    let code = fs::read_to_string(path).expect("Unable to read file");
-    language::interpret(&code).expect("Error running code");
+    let result = fs::read_to_string(path);
+
+    if let Err(err) = result {
+        println!("{}", err);
+        return;
+    }
+
+    let code = result.unwrap();
+
+    let result  = language::interpret(&code);
+
+    if let Err(err) = result {
+        println!("{}", err);
+    }
 }
