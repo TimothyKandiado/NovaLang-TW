@@ -1,4 +1,4 @@
-use std::fmt::Display;
+use std::{fmt::Display, sync::{Arc, RwLock}};
 
 use interpreter::AstInterpreter;
 
@@ -20,6 +20,10 @@ impl Object {
             Self::Bool(boolean) => *boolean,
             _ => true,
         }
+    }
+
+    pub fn wrap(self) -> Arc<RwLock<Self>> {
+        Arc::new(RwLock::new(self))
     }
 }
 
@@ -49,7 +53,7 @@ impl Callable {
         }
     }
 
-    pub fn call(&self, _interpreter: &mut AstInterpreter, arguments: &Vec<Object>) -> Result<Object, errors::Error> {
+    pub fn call(&self, _interpreter: &mut AstInterpreter, arguments: &Vec<Arc<RwLock<Object>>>) -> Result<Arc<RwLock<Object>>, errors::Error> {
         match self {
             Self::NativeCall(native_call) => native_call.call(arguments)
         }
@@ -59,7 +63,7 @@ impl Callable {
 #[derive(Debug, Clone, PartialEq, PartialOrd)]
 pub struct NativeCall {
     arity: i8,
-    function: fn(arguments: &Vec<Object>) -> Result<Object, errors::Error>
+    function: fn(arguments: &Vec<Arc<RwLock<Object>>>) -> Result<Arc<RwLock<Object>>, errors::Error>
 }
 
 impl NativeCall {
@@ -67,7 +71,7 @@ impl NativeCall {
         self.arity
     }
 
-    pub fn call(&self, arguments: &Vec<Object>) -> Result<Object, errors::Error> {
+    pub fn call(&self, arguments: &Vec<Arc<RwLock<Object>>>) -> Result<Arc<RwLock<Object>>, errors::Error> {
         (self.function)(arguments)
     }
 }

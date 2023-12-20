@@ -6,8 +6,8 @@ pub struct Variable {
 }
 
 impl Variable {
-    pub fn accept<T>(&self, visitor: &impl ExpressionVisitor<Output = T>) -> T {
-        todo!()
+    pub fn accept<T>(&self, visitor: &mut impl ExpressionVisitor<Output = T>) -> T {
+        visitor.visit_variable(self)
     }
 
     pub fn new(name: Token) -> Self {

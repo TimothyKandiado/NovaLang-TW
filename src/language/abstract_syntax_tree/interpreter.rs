@@ -8,7 +8,7 @@ use super::{
 };
 use crate::language::{
     errors,
-    scanner::{object::Object, token::TokenType},
+    scanner::{object::{Object, self}, token::TokenType},
 };
 
 /// A simple abstract syntax tree interpreter
@@ -23,11 +23,11 @@ impl AstInterpreter {
         }
     }
 
-    pub fn interpret_expression(&mut self, expression: Expression) -> Result<String, errors::Error> {
+/*     pub fn interpret_expression(&mut self, expression: Expression) -> Result<String, errors::Error> {
         let result = self.evaluate(&expression)?;
 
         Ok(result.to_string())
-    }
+    } */
 
     pub fn interpret(&mut self, statements: Vec<Statement>) -> Result<(), errors::Error> {
         for statement in statements {
@@ -55,8 +55,8 @@ impl AstInterpreter {
         result
     }
 
-    fn evaluate(&mut self, expression: &Expression) -> Result<Object, errors::Error> {
-        expression.accept::<Result<Object, errors::Error>>(self)
+    fn evaluate(&mut self, expression: &Expression) -> Result<Arc<RwLock<Object>>, errors::Error> {
+        expression.accept::<Result<Arc<RwLock<Object>>, errors::Error>>(self)
     }
 
     pub fn print_environment(&self) {
@@ -76,20 +76,26 @@ impl StatementVisitor for AstInterpreter {
 
     fn visit_if(&mut self, if_statement: &super::statement::IfStatement) -> Self::Output {
         let condition = self.evaluate(&if_statement.condition)?;
-
-        if condition.is_truthy() {
-            self.execute(&if_statement.then_branch)?;
-        } else {
-            if let Some(else_branch) = &if_statement.else_branch {
-                self.execute(else_branch)?;
+        
+        let condition = condition.read();
+        if let Ok(condition) = condition {
+            if condition.is_truthy() {
+                self.execute(&if_statement.then_branch)?;
+            } else {
+                if let Some(else_branch) = &if_statement.else_branch {
+                    self.execute(else_branch)?;
+                }
             }
+        } 
+        else {
+            condition.unwrap();
         }
 
         Ok(())
     }
 
     fn visit_while(&mut self, while_loop: &super::statement::WhileLoop) -> Self::Output {
-        while self.evaluate(&while_loop.condition)?.is_truthy() {
+        while self.evaluate(&while_loop.condition)?.read().unwrap().is_truthy() {
             self.execute(&while_loop.body)?;
         }
 
@@ -119,7 +125,7 @@ impl StatementVisitor for AstInterpreter {
 
         if let Some(initializer) = &var_declaration.initializer {
             let initializer = self.evaluate(initializer)?;
-            value = Arc::new(RwLock::new(initializer.clone()));
+            value = Arc::new(RwLock::new(initializer.read().unwrap().clone()));
         }
 
         let env_writer = self.environment.write();
@@ -147,92 +153,117 @@ impl StatementVisitor for AstInterpreter {
 }
 
 impl ExpressionVisitor for AstInterpreter {
-    type Output = Result<Object, errors::Error>;
+    type Output = Result<Arc<RwLock<Object>>, errors::Error>;
 
     fn visit_binary(&mut self, binary: &super::expression::binary::Binary) -> Self::Output {
-        let left = self.evaluate(&binary.left)?;
-        let right = self.evaluate(&binary.right)?;
+        let left_binding = self.evaluate(&binary.left)?;
+        let right_binding = self.evaluate(&binary.right)?;
+
+        let left = left_binding.read().unwrap();
+        let right = right_binding.read().unwrap();
 
         match binary.operator.token_type {
             TokenType::Plus => {
-                if let (Object::Number(left), Object::Number(right)) = (left, right) {
-                    return Ok(Object::Number(left + right));
+                if let (Object::Number(left), Object::Number(right)) = ((&*left), &(*right)) {
+                    return Ok(
+                        Arc::new(RwLock::new(Object::Number(left + right))));
                 }
 
                 Err(errors::Error::intepret_error("Cannot add non numbers"))
             }
 
             TokenType::Minus => {
-                if let (Object::Number(left), Object::Number(right)) = (left, right) {
-                    return Ok(Object::Number(left - right));
+                if let (Object::Number(left), Object::Number(right)) = ((&*left), &(*right)) {
+                    return Ok(Object::Number(left - right).wrap());
                 }
 
                 Err(errors::Error::intepret_error("Cannot subtract non numbers"))
             }
 
             TokenType::Slash => {
-                if let (Object::Number(left), Object::Number(right)) = (left, right) {
-                    return Ok(Object::Number(left / right));
+                if let (Object::Number(left), Object::Number(right)) = ((&*left), &(*right)) {
+                    return Ok(Object::Number(left / right).wrap());
                 }
 
                 Err(errors::Error::intepret_error("Cannot divide non numbers"))
             }
 
             TokenType::Star => {
-                if let (Object::Number(left), Object::Number(right)) = (left, right) {
-                    return Ok(Object::Number(left * right));
+                if let (Object::Number(left), Object::Number(right)) = ((&*left), &(*right)) {
+                    return Ok(Object::Number(left * right).wrap());
                 }
 
                 Err(errors::Error::intepret_error("Cannot multiply non numbers"))
             }
 
             TokenType::Or => {
-                let left = self.evaluate(&binary.left)?;
-                let right = self.evaluate(&binary.right)?;
+                let left_binding = self.evaluate(&binary.left)?;
+                let right_binding = self.evaluate(&binary.right)?;
 
-                Ok(Object::Bool(left.is_truthy() || right.is_truthy()))
+                let left = left_binding.read().unwrap();
+                let right = right_binding.read().unwrap();
+
+                Ok(Object::Bool((*left).is_truthy() || (*right).is_truthy()).wrap())
             }
 
             TokenType::And => {
-                let left = self.evaluate(&binary.left)?;
-                let right = self.evaluate(&binary.right)?;
+                let left_binding = self.evaluate(&binary.left)?;
+                let right_binding = self.evaluate(&binary.right)?;
 
-                Ok(Object::Bool(left.is_truthy() && right.is_truthy()))
+                let left = left_binding.read().unwrap();
+                let right = right_binding.read().unwrap();
+
+                Ok(Object::Bool((*left).is_truthy() && (*right).is_truthy()).wrap())
             }
 
             TokenType::EqualEqual => {
-                let left = self.evaluate(&binary.left)?;
-                let right = self.evaluate(&binary.right)?;
+                let left_binding = self.evaluate(&binary.left)?;
+                let right_binding = self.evaluate(&binary.right)?;
 
-                Ok(Object::Bool(left == right))
+                let left = left_binding.read().unwrap();
+                let right = right_binding.read().unwrap();
+
+                Ok(Object::Bool(*left == *right).wrap())
             }
 
             TokenType::Greater => {
-                let left = self.evaluate(&binary.left)?;
-                let right = self.evaluate(&binary.right)?;
+                let left_binding = self.evaluate(&binary.left)?;
+                let right_binding = self.evaluate(&binary.right)?;
 
-                Ok(Object::Bool(left > right))
+                let left = left_binding.read().unwrap();
+                let right = right_binding.read().unwrap();
+
+                Ok(Object::Bool(*left > *right).wrap())
             }
 
             TokenType::GreaterEqual => {
-                let left = self.evaluate(&binary.left)?;
-                let right = self.evaluate(&binary.right)?;
+                let left_binding = self.evaluate(&binary.left)?;
+                let right_binding = self.evaluate(&binary.right)?;
 
-                Ok(Object::Bool(left >= right))
+                let left = left_binding.read().unwrap();
+                let right = right_binding.read().unwrap();
+
+                Ok(Object::Bool(*left >= *right).wrap())
             }
 
             TokenType::Less => {
-                let left = self.evaluate(&binary.left)?;
-                let right = self.evaluate(&binary.right)?;
+                let left_binding = self.evaluate(&binary.left)?;
+                let right_binding = self.evaluate(&binary.right)?;
 
-                Ok(Object::Bool(left < right))
+                let left = left_binding.read().unwrap();
+                let right = right_binding.read().unwrap();
+
+                Ok(Object::Bool(*left < *right).wrap())
             }
 
             TokenType::LessEqual => {
-                let left = self.evaluate(&binary.left)?;
-                let right = self.evaluate(&binary.right)?;
+                let left_binding = self.evaluate(&binary.left)?;
+                let right_binding = self.evaluate(&binary.right)?;
 
-                Ok(Object::Bool(left <= right))
+                let left = left_binding.read().unwrap();
+                let right = right_binding.read().unwrap();
+
+                Ok(Object::Bool(*left <= *right).wrap())
             }
 
             _ => Err(errors::Error::intepret_error(&format!(
@@ -243,12 +274,13 @@ impl ExpressionVisitor for AstInterpreter {
     }
 
     fn visit_unary(&mut self, unary: &super::expression::unary::Unary) -> Self::Output {
-        let right = self.evaluate(&unary.right)?;
+        let binding = self.evaluate(&unary.right)?;
+        let right = binding.read().unwrap();
 
         match unary.operator.token_type {
             TokenType::Minus => {
-                if let Object::Number(right) = right {
-                    return Ok(Object::Number(-right));
+                if let Object::Number(right) = right.to_owned() {
+                    return Ok(Object::Number(-right).wrap());
                 }
 
                 Err(errors::Error::intepret_error("Cannot negate a non number"))
@@ -266,21 +298,24 @@ impl ExpressionVisitor for AstInterpreter {
     }
 
     fn visit_literal(&mut self, literal: &super::expression::literal::Literal) -> Self::Output {
-        Ok(literal.object.clone())
+        Ok(literal.object.clone().wrap())
     }
 
     fn visit_call(
         &mut self,
         call: &super::expression::call::Call,
     ) -> Self::Output {
-        let callee = self.evaluate(&call.callee)?;
+
+        let callee_binding = self.evaluate(&call.callee)?;
+        let callee = callee_binding.read().unwrap();
+
         let mut arguments = Vec::new();
 
         for argument in &call.arguments {
             arguments.push(self.evaluate(argument)?);
         }
 
-        if let Object::Callable(callable) = callee {
+        if let Object::Callable(callable) = &(*callee) {
             if callable.arity() != arguments.len() as i8 && callable.arity() != -1 {
                 return Err(errors::Error::intepret_error("too many function arguments"))
             }
@@ -294,7 +329,13 @@ impl ExpressionVisitor for AstInterpreter {
     }
 
     fn visit_variable(&mut self, variable: &super::expression::variable::Variable) -> Self::Output {
-        todo!()
+        let env_reader = self.environment.read();
+        if let Ok(env_reader) = env_reader {
+            let object = env_reader.get_value(variable.name.object.to_string().as_str());
+            return Ok(object);
+        }
+
+        return Err(errors::Error::RuntimeError("Error retrieving value".to_string()))
     }
 
     fn visit_assign(&mut self, assign: &super::statement::assignment::Assign) -> Self::Output {
@@ -302,7 +343,7 @@ impl ExpressionVisitor for AstInterpreter {
 
         let env_writer = self.environment.write();
         if let Ok(mut env_writer) = env_writer {
-            let value = Arc::new(RwLock::new(value));
+            //let value = Arc::new(RwLock::new(value));
             (*env_writer).set_value(assign.name.object.to_string().as_str(), value)?;
         }
         else {
@@ -310,7 +351,7 @@ impl ExpressionVisitor for AstInterpreter {
             return Err(errors::Error::RuntimeError(err.to_string()))
         }
 
-        Ok(Object::None)
+        Ok(Object::None.wrap())
     }
 
     fn visit_get(&mut self, get: &super::statement::assignment::Get) -> Self::Output {
