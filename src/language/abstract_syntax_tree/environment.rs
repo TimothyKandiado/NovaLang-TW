@@ -47,12 +47,12 @@ impl Environment {
                 return (*parent_writer).set_value(name, value);
             }
 
-            return Err(errors::Error::RuntimeError(
+            return Err(errors::Error::Runtime(
                 parent_writer.unwrap_err().to_string(),
             ));
         }
 
-        Err(errors::Error::RuntimeError(
+        Err(errors::Error::Runtime(
             "Can not set a variable that was not declared".to_string(),
         ))
     }

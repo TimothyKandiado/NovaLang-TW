@@ -44,7 +44,7 @@ impl AstParser {
             statements.push(statement)
         }
         if self.error_occurred {
-            return Err(errors::Error::ParseError("Unable to parse abstract syntax tree".to_string()));
+            return Err(errors::Error::Parse("Unable to parse abstract syntax tree".to_string()));
         }
         Ok(statements)
     }
@@ -108,7 +108,7 @@ impl AstParser {
         if !self.check(TokenType::RightParen) {
             loop {
                 if parameters.len() > MAX_PARAMETERS {
-                    return Err(errors::Error::ParseError(format!(
+                    return Err(errors::Error::Parse(format!(
                         "Cannot have more than {} parameters",
                         MAX_PARAMETERS
                     )));
@@ -296,7 +296,7 @@ impl AstParser {
     fn or(&mut self) -> Result<Expression, errors::Error> {
         let expression = self.and()?;
 
-        while self.match_tokens(&[TokenType::Or]) {
+        if self.match_tokens(&[TokenType::Or]) {
             let operator = self.previous().clone();
             let right = self.and()?;
 
@@ -314,7 +314,7 @@ impl AstParser {
     fn and(&mut self) -> Result<Expression, errors::Error> {
         let expression = self.equality()?;
 
-        while self.match_tokens(&[TokenType::And]) {
+        if self.match_tokens(&[TokenType::And]) {
             let operator = self.previous().clone();
             let right = self.equality()?;
 
@@ -332,7 +332,7 @@ impl AstParser {
     fn equality(&mut self) -> Result<Expression, errors::Error> {
         let expression = self.comparison()?;
 
-        while self.match_tokens(&[TokenType::EqualEqual, TokenType::NotEqual]) {
+        if self.match_tokens(&[TokenType::EqualEqual, TokenType::NotEqual]) {
             let operator = self.previous().clone();
             let right = self.comparison()?;
 
@@ -350,7 +350,7 @@ impl AstParser {
     fn comparison(&mut self) -> Result<Expression, errors::Error> {
         let expression: Expression = self.addition()?;
 
-        while self.match_tokens(&[
+        if self.match_tokens(&[
             TokenType::Greater,
             TokenType::GreaterEqual,
             TokenType::Less,
@@ -540,7 +540,7 @@ impl AstParser {
 
     fn error(&mut self, token: &Token, message: &str) -> errors::Error {
         self.error_occurred = true;
-        errors::Error::ParseError(format!("[line: {}] (ParseError) {} ", token.line, message))
+        errors::Error::Parse(format!("[line: {}] (ParseError) {} ", token.line, message))
     }
 }
 

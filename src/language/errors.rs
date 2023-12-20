@@ -2,10 +2,10 @@ use std::fmt::Display;
 
 #[derive(Debug)]
 pub enum Error {
-    ParseError(String),
-    ScanError(String),
-    InterpretError(String),
-    RuntimeError(String),
+    Parse(String),
+    Scan(String),
+    Interpret(String),
+    Runtime(String),
 }
 
 impl Display for Error {
@@ -14,10 +14,10 @@ impl Display for Error {
             f,
             "{}",
             match self {
-                Self::ParseError(description) => description,
-                Self::ScanError(description) => description,
-                Self::InterpretError(description) => description,
-                Self::RuntimeError(description) => description,
+                Self::Parse(description) => description,
+                Self::Scan(description) => description,
+                Self::Interpret(description) => description,
+                Self::Runtime(description) => description,
             }
         )
     }
@@ -25,14 +25,14 @@ impl Display for Error {
 
 impl Error {
     pub fn scan_error(description: &str) -> Self {
-        Self::ScanError(description.to_string())
+        Self::Scan(description.to_string())
     }
 
     pub fn parse_error(description: &str) -> Self {
-        Self::ParseError(description.to_string())
+        Self::Parse(description.to_string())
     }
 
     pub fn intepret_error(description: &str) -> Self {
-        Self::InterpretError(description.to_string())
+        Self::Interpret(description.to_string())
     }
 }

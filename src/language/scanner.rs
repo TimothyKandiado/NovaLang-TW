@@ -76,7 +76,7 @@ impl Scanner {
                     self.advance();
                     return Ok(simple_token(TokenType::ColonEqual, self.line));
                 }
-                
+
                 Ok(simple_token(TokenType::Colon, self.line))
             },
             '.' => Ok(simple_token(TokenType::Dot, self.line)),
@@ -88,7 +88,7 @@ impl Scanner {
                     return Ok(simple_token(TokenType::And, self.line));
                 }
 
-                Err(errors::Error::ScanError(format!(
+                Err(errors::Error::Scan(format!(
                     "Unknown token {}",
                     current_character
                 )))
@@ -97,7 +97,7 @@ impl Scanner {
             '|' => {
                 let next = self.advance();
                 if next != '|' {
-                    return Err(errors::Error::ScanError("Unknown token '|' ".to_string()));
+                    return Err(errors::Error::Scan("Unknown token '|' ".to_string()));
                 }
                 Ok(simple_token(TokenType::Or, self.line))
             }
@@ -138,7 +138,7 @@ impl Scanner {
             x if x.is_ascii_digit() => self.scan_number(),
             x if is_identifier_start(x) => self.scan_identifier(),
 
-            _ => Err(errors::Error::ScanError(format!(
+            _ => Err(errors::Error::Scan(format!(
                 "Undefined character {}",
                 current_character
             ))),
@@ -220,14 +220,14 @@ impl Scanner {
             if let Ok(exponent_value) = exponent_segment.parse::<f64>() {
                 exponent = exponent_value;
             } else {
-                return Err(errors::Error::ScanError(
+                return Err(errors::Error::Scan(
                     "could not parse exponent value".to_string(),
                 ));
             }
         }
 
         if number_result.is_err() {
-            return Err(errors::Error::ScanError(format!(
+            return Err(errors::Error::Scan(format!(
                 "could not parse float from {}",
                 segment
             )));
@@ -241,7 +241,7 @@ impl Scanner {
                 line: self.line,
             })
         } else {
-            Err(errors::Error::ScanError(format!(
+            Err(errors::Error::Scan(format!(
                 "could not parse number from {}",
                 segment
             )))
@@ -324,7 +324,7 @@ impl Scanner {
             return Ok(());
         }
 
-        Err(errors::Error::ScanError(message.to_string()))
+        Err(errors::Error::Scan(message.to_string()))
     }
 }
 

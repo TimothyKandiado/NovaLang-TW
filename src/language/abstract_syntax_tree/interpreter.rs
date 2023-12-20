@@ -192,7 +192,7 @@ impl StatementVisitor for AstInterpreter {
         if let Ok(mut env_writer) = env_writer {
             (*env_writer).declare_value(var_declaration.name.object.to_string().as_str(), value)
         } else {
-            return Err(errors::Error::RuntimeError(
+            return Err(errors::Error::Runtime(
                 env_writer.unwrap_err().to_string(),
             ));
         }
@@ -206,7 +206,7 @@ impl StatementVisitor for AstInterpreter {
     }
 
     fn visit_none(&mut self) -> Self::Output {
-        Err(errors::Error::InterpretError(
+        Err(errors::Error::Interpret(
             "Cannot execute a nil statement".to_string(),
         ))
     }
@@ -354,7 +354,7 @@ impl ExpressionVisitor for AstInterpreter {
             return Ok(object);
         }
 
-        Err(errors::Error::RuntimeError(
+        Err(errors::Error::Runtime(
             "Error retrieving value".to_string(),
         ))
     }
@@ -368,7 +368,7 @@ impl ExpressionVisitor for AstInterpreter {
             (*env_writer).set_value(assign.name.object.to_string().as_str(), value)?;
         } else {
             let err = env_writer.unwrap_err();
-            return Err(errors::Error::RuntimeError(err.to_string()));
+            return Err(errors::Error::Runtime(err.to_string()));
         }
 
         Ok(Object::None.wrap())
