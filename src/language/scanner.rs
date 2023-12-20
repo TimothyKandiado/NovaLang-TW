@@ -129,7 +129,7 @@ impl Scanner {
             }
 
             x if x.is_ascii_digit() => self.scan_number(),
-            x if x.is_alphabetic() || x == '_' => self.scan_identifier(),
+            x if is_identifier_start(x) => self.scan_identifier(),
 
             _ => Err(errors::Error::ScanError(format!(
                 "Undefined character {}",
@@ -235,7 +235,7 @@ impl Scanner {
     }
 
     fn scan_identifier(&mut self) -> Result<Token, errors::Error> {
-        while !self.is_at_end() && (self.peek().is_ascii_alphanumeric() || self.peek() == '_') {
+        while !self.is_at_end() && is_identifier_rest(self.peek()) {
             self.advance();
         }
 
@@ -318,7 +318,7 @@ fn is_identifier_start(character: char) -> bool {
 }
 
 fn is_identifier_rest(character: char) -> bool {
-    is_identifier_rest(character) || character.is_digit(10)
+    is_identifier_start(character) || character.is_digit(10)
 }
 #[cfg(test)]
 mod tests {
