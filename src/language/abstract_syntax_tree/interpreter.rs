@@ -192,9 +192,7 @@ impl StatementVisitor for AstInterpreter {
         if let Ok(mut env_writer) = env_writer {
             (*env_writer).declare_value(var_declaration.name.object.to_string().as_str(), value)
         } else {
-            return Err(errors::Error::Runtime(
-                env_writer.unwrap_err().to_string(),
-            ));
+            return Err(errors::Error::Runtime(env_writer.unwrap_err().to_string()));
         }
 
         Ok(())
@@ -354,9 +352,7 @@ impl ExpressionVisitor for AstInterpreter {
             return Ok(object);
         }
 
-        Err(errors::Error::Runtime(
-            "Error retrieving value".to_string(),
-        ))
+        Err(errors::Error::Runtime("Error retrieving value".to_string()))
     }
 
     fn visit_assign(&mut self, assign: &super::statement::assignment::Assign) -> Self::Output {

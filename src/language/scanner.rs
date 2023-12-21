@@ -78,7 +78,7 @@ impl Scanner {
                 }
 
                 Ok(simple_token(TokenType::Colon, self.line))
-            },
+            }
             '.' => Ok(simple_token(TokenType::Dot, self.line)),
             ',' => Ok(simple_token(TokenType::Comma, self.line)),
             '"' => self.scan_string(),

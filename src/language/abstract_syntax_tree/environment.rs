@@ -5,7 +5,6 @@ use std::{collections::HashMap as Map, sync::Arc};
 
 use crate::language::{errors, scanner::object::Object};
 
-
 #[derive(Debug)]
 pub struct Environment {
     parent: Option<Arc<RwLock<Environment>>>,
@@ -106,11 +105,7 @@ impl Display for Environment {
 
         for (name, value) in &self.values {
             if let Ok(value) = value.read() {
-                values.push_str(&format!(
-                    " [id: {} => value : {}]",
-                    name,
-                    (*value)
-                ));
+                values.push_str(&format!(" [id: {} => value : {}]", name, (*value)));
                 values.push('\n');
             }
         }

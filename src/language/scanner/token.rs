@@ -21,7 +21,8 @@ pub enum TokenType {
     Fn,
     Class,
     Let,
-    Block, /// start of block of code
+    Block,
+    /// start of block of code
     Delete, // delete values
     If,
     Else,

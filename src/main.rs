@@ -60,7 +60,7 @@ fn run_file(path: &str) {
 
     let code = result.unwrap();
 
-    let result  = language::interpret(&code);
+    let result = language::interpret(&code);
 
     if let Err(err) = result {
         println!("{}", err);

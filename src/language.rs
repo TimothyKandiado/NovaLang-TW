@@ -6,8 +6,10 @@ pub use abstract_syntax_tree::{interpreter::AstInterpreter, parser::AstParser};
 pub use scanner::token::debug_print_tokens;
 pub use scanner::Scanner;
 
+pub use scanner::object::{Callable, NativeCall, Object};
+pub use scanner::token::{Token, TokenType};
 
-use self::abstract_syntax_tree::statement::Statement;
+pub use abstract_syntax_tree::{expression::*, statement::*, visitor::*};
 
 pub fn interpret(source: &str) -> Result<(), errors::Error> {
     let statements = generate_parsed_ast(source)?;

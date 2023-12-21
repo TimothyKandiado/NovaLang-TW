@@ -23,14 +23,18 @@ use super::{
 pub struct AstParser {
     tokens: Vec<Token>,
     current: usize,
-    error_occurred: bool
+    error_occurred: bool,
 }
 
 const MAX_PARAMETERS: usize = 8;
 
 impl AstParser {
     pub fn new(tokens: Vec<Token>) -> Self {
-        Self { tokens, current: 0, error_occurred: false }
+        Self {
+            tokens,
+            current: 0,
+            error_occurred: false,
+        }
     }
 
     pub fn parse_ast(mut self) -> Result<Vec<Statement>, errors::Error> {
@@ -44,7 +48,9 @@ impl AstParser {
             statements.push(statement)
         }
         if self.error_occurred {
-            return Err(errors::Error::Parse("Unable to parse abstract syntax tree".to_string()));
+            return Err(errors::Error::Parse(
+                "Unable to parse abstract syntax tree".to_string(),
+            ));
         }
         Ok(statements)
     }
@@ -410,11 +416,9 @@ impl AstParser {
     fn call(&mut self) -> Result<Expression, errors::Error> {
         let expression = self.primary()?;
 
-        
         if self.match_tokens(&[TokenType::LeftParen]) {
             return self.finish_call(expression);
-        } 
-        else if self.match_tokens(&[TokenType::Dot]) {
+        } else if self.match_tokens(&[TokenType::Dot]) {
             let name = self.consume(TokenType::Identifier, "Expect name after '.'")?;
             return Ok(Expression::Get(Box::new(Get {
                 object: expression,
