@@ -468,6 +468,13 @@ impl AstParser {
             return Ok(Expression::Literal(Literal::new(token.object)));
         }
 
+        // Handle literals
+        if self.match_tokens(&[TokenType::None]) {
+            //let token = self.previous().clone();
+
+            return Ok(Expression::Literal(Literal::new(Object::None)));
+        }
+
         // Handle booleans
         if self.match_tokens(&[TokenType::True, TokenType::False]) {
             let token = self.previous().clone();

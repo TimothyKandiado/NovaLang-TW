@@ -16,14 +16,14 @@ pub enum TokenType {
     Identifier,
     Dot,
     Comma,
+    None,
     Eof,
 
     Fn,
     Class,
     Let,
     Block,
-    /// start of block of code
-    Delete, // delete values
+    Delete, 
     If,
     Else,
     For,
@@ -44,6 +44,7 @@ pub enum TokenType {
     LessEqual,
     Greater,
     Less,
+
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]

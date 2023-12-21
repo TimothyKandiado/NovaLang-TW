@@ -271,6 +271,7 @@ impl Scanner {
             "let" => Ok(simple_token(TokenType::Let, self.line)),
             "block" => Ok(simple_token(TokenType::Block, self.line)),
             "delete" => Ok(simple_token(TokenType::Delete, self.line)),
+            "none" => Ok(simple_token(TokenType::None, self.line)),
 
             _ => Ok(Token {
                 token_type: TokenType::Identifier,
