@@ -4,7 +4,7 @@ use std::{
     process::exit,
 };
 
-use tim::language::{self, generate_parsed_ast, AstInterpreter};
+use nova_tw::language::{self, generate_parsed_ast, AstInterpreter};
 
 const PROMPT: &str = ">>";
 fn main() {

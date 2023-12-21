@@ -1,0 +1,12 @@
+let max = 1E4
+println("print sum of all values upto ", max)
+
+let a = 1
+let sum = 0
+
+while a <= max
+    sum = sum + a
+    a = a + 1
+end
+
+println("sum = ", sum)

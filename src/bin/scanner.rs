@@ -3,7 +3,7 @@ use std::{
     io::{self, Write},
     process::exit,
 };
-use tim::language;
+use nova_tw::language;
 
 fn main() {
     let args = env::args().collect::<Vec<String>>();

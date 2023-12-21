@@ -1,0 +1,12 @@
+let a = 0
+let b = 1
+let max = 30
+
+println("fibonacci upto ", max)
+println(b)
+while a < max
+    let temp = a + b
+    println(temp)
+    a = b
+    b = temp
+end

@@ -3,5 +3,5 @@
 version = 3
 
 [[package]]
-name = "tim"
+name = "nova_tw"
 version = "0.1.1"

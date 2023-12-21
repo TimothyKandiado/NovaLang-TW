@@ -5,6 +5,7 @@ use std::{collections::HashMap as Map, sync::Arc};
 
 use crate::language::{errors, scanner::object::Object};
 
+
 #[derive(Debug)]
 pub struct Environment {
     parent: Option<Arc<RwLock<Environment>>>,

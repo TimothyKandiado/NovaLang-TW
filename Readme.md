@@ -1,2 +1,2 @@
-#Tim language
-A simple programming language based on lox in crafting interpreters
+## NovaLang-TW
+A simple programming language using a treewalk interpreter written in rust
