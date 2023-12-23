@@ -1,4 +1,6 @@
-use std::fmt::Display;
+use std::{fmt::Display, sync::{Arc, RwLock}};
+
+use super::Object;
 
 #[derive(Debug)]
 pub enum Error {
@@ -6,6 +8,7 @@ pub enum Error {
     Scan(String),
     Interpret(String),
     Runtime(String),
+    Return(Arc<RwLock<Object>>)
 }
 
 impl Display for Error {
@@ -18,6 +21,7 @@ impl Display for Error {
                 Self::Scan(description) => description,
                 Self::Interpret(description) => description,
                 Self::Runtime(description) => description,
+                Self::Return(_) => "return"
             }
         )
     }

@@ -12,7 +12,7 @@ use super::{
 use crate::language::{
     errors,
     scanner::{
-        object::{Callable, NativeCall, Object, WrappedObject},
+        object::{Callable, NativeCall, Object, WrappedObject, DefinedCall},
         token::TokenType,
     },
 };
@@ -87,7 +87,7 @@ impl AstInterpreter {
         statement.accept(self)
     }
 
-    fn execute_block(
+    pub fn execute_block(
         &mut self,
         block: &Block,
         new_environment: Arc<RwLock<Environment>>,
@@ -168,13 +168,25 @@ impl StatementVisitor for AstInterpreter {
 
     fn visit_function_statement(
         &mut self,
-        _function_statement: &super::statement::function::FunctionStatement,
+        function_statement: &super::statement::function::FunctionStatement,
     ) -> Self::Output {
-        todo!()
+        let function = function_statement.clone();
+        let function = Callable::DefinedCall(DefinedCall::new(Box::new(function), Arc::clone(&self.environment), false));
+        let function = Arc::new(RwLock::new(Object::Callable(function)));
+
+        self.environment.write().unwrap().declare_value(function_statement.name.object.to_string().as_str(), function);
+
+        Ok(())
     }
 
-    fn visit_return(&mut self, _return_statement: &Option<Expression>) -> Self::Output {
-        todo!()
+    fn visit_return(&mut self, return_statement: &Option<Expression>) -> Self::Output {
+        let mut object = Object::None.wrap();
+
+        if let Some(expression) = return_statement {
+            object = self.evaluate(expression)?;
+        }
+
+        Err(errors::Error::Return(object))
     }
 
     fn visit_var_declaration(

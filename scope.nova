@@ -1,0 +1,24 @@
+println("global scope")
+let a = 20
+let b = -88.8
+
+println("a = ", a, ", b = ", b)
+
+block 
+    println("inner scope")
+    let a = -4E3
+    let b = 9E2
+
+    println("a = ", a, ", b = ", b)
+    block
+        println("inner inner scope")
+        let a = "sanji"
+        let b = "vinsmoke"
+
+        println("a = ", a, ", b = ", b)
+    end
+    println("inner scope")
+    println("a = ", a, ", b = ", b)
+end
+println("global scope")
+println("a = ", a, ", b = ", b)

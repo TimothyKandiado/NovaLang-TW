@@ -1,0 +1,17 @@
+fn test()
+    println("zero parameter function called")
+end
+
+fn sum(a, b)
+    let s = a + b 
+    #println("sum = ", s)
+    return s
+end
+
+test()
+
+let x = 30
+let y = 90
+
+let s = sum(x, y)
+println(x, " + ", y, " = ", s)

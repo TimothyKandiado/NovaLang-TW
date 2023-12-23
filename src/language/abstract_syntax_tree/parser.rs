@@ -135,12 +135,17 @@ impl AstParser {
             "Expect newline after function parameters",
         )?;
         let body = self.block_statement(&[TokenType::End], true)?;
+        if let Statement::Block(body) = body {
+            return Ok(Statement::FunctionStatement(Box::new(FunctionStatement {
+                name,
+                parameters,
+                body,
+            })))
+        }
 
-        Ok(Statement::FunctionStatement(Box::new(FunctionStatement {
-            name,
-            parameters,
-            body,
-        })))
+        let previous = self.previous().clone();
+        return Err(self.error(&previous, "Error parsing function"))
+        
     }
 
     fn statement(&mut self) -> Result<Statement, errors::Error> {
@@ -173,11 +178,13 @@ impl AstParser {
 
     fn if_statement(&mut self) -> Result<Statement, errors::Error> {
         let condition = self.expression()?;
+        self.consume(TokenType::NewLine, "Expect new line after while condition")?;
 
         let then_branch = self.block_statement(&[TokenType::End, TokenType::Else], false)?;
         let mut else_branch = None;
 
         if self.match_tokens(&[TokenType::Else]) {
+            self.consume(TokenType::NewLine, "Expect new line after while condition")?;
             else_branch = Some(self.block_statement(&[TokenType::End], true)?)
         } else {
             self.consume(TokenType::End, "Expected end after if block")?;
@@ -199,6 +206,8 @@ impl AstParser {
         if !self.check(TokenType::NewLine) {
             value = Some(self.expression()?);
         }
+        
+        self.consume(TokenType::NewLine, "Expect newline after return statement")?;
 
         Ok(Statement::ReturnStatement(value))
     }
@@ -207,7 +216,7 @@ impl AstParser {
         //self.consume(TokenType::LeftParen, "Expect '(' before condition")?;
         let condition = self.expression()?;
         //self.consume(TokenType::RightParen, "Expect ')' after condition")?;
-        //self.consume(TokenType::NewLine, "Expect new line after while condition")?;
+        self.consume(TokenType::NewLine, "Expect new line after while condition")?;
 
         let body = self.block_statement(&[TokenType::End], true)?;
         Ok(Statement::WhileLoop(Box::new(WhileLoop {
@@ -222,7 +231,7 @@ impl AstParser {
         consume: bool,
     ) -> Result<Statement, errors::Error> {
         let mut statements = Vec::new();
-        self.consume(TokenType::NewLine, "Expect new line before block")?;
+        //self.consume(TokenType::NewLine, "Expect new line before block")?;
 
         while !self.match_tokens(end_tokens) && !self.is_at_end() {
             statements.push(self.declaration())
