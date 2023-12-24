@@ -1,0 +1,13 @@
+class test
+    fn init()
+        println("Init method of test")
+    end
+
+    fn method()
+        println("In test method")
+    end
+end
+
+let n = test()
+let m = n.method
+m()

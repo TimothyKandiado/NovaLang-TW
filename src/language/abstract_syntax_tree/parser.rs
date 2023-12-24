@@ -3,7 +3,7 @@ use crate::language::{
     scanner::{
         object::Object,
         token::{Token, TokenType},
-    },
+    }, class::ClassStatement,
 };
 
 use super::{
@@ -80,7 +80,35 @@ impl AstParser {
     }
 
     fn class_declaration(&mut self) -> Result<Statement, errors::Error> {
-        todo!()
+        let name = self.consume(TokenType::Identifier, "Expect class name")?.clone();
+
+        let mut superclass = None;
+
+        if self.match_tokens(&[TokenType::Colon]) {
+            let superclass_name = self.consume(TokenType::Identifier, "Expect superclass name")?;
+            let _ = superclass.insert(Expression::Variable(Box::new(Variable::new(superclass_name.clone()))));
+        }
+
+        self.consume(TokenType::NewLine, "Expect newline before class body")?;
+        let mut methods = Vec::new();
+
+        while !self.check(TokenType::End) {
+            if self.match_tokens(&[TokenType::Fn]) {
+                let method = self.function_declaration("method")?;
+                if let Statement::FunctionStatement(function) = method {
+                    methods.push(*function);
+                }
+                //self.consume(TokenType::NewLine, "Expect newline after end of method")?;
+                continue;
+            } 
+
+            return Err(self.error(&name, "Error parsing class"));
+        }
+
+        self.consume(TokenType::End, "Expect 'end' after class declaration")?;
+        self.consume(TokenType::NewLine, "Expect newline after end of class declaration")?;
+
+        return Ok(Statement::ClassStatement(ClassStatement::new(name.clone(), superclass, methods)))
     }
 
     fn var_declaration(&mut self) -> Result<Statement, errors::Error> {
@@ -206,7 +234,7 @@ impl AstParser {
         if !self.check(TokenType::NewLine) {
             value = Some(self.expression()?);
         }
-        
+
         self.consume(TokenType::NewLine, "Expect newline after return statement")?;
 
         Ok(Statement::ReturnStatement(value))

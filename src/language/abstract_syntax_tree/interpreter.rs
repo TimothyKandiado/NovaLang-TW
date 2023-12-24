@@ -1,6 +1,6 @@
 use std::{
     io::{self, Write},
-    sync::{Arc, RwLock},
+    sync::{Arc, RwLock}, collections::HashMap,
 };
 
 use super::{
@@ -12,7 +12,7 @@ use super::{
 use crate::language::{
     errors,
     scanner::{
-        object::{Callable, NativeCall, Object, WrappedObject, DefinedCall},
+        object::{Callable, NativeCall, Object, WrappedObject, DefinedCall, ClassObject},
         token::TokenType,
     },
 };
@@ -53,7 +53,7 @@ impl AstInterpreter {
             Ok(Object::None.wrap())
         };
 
-        let println_object = Object::Callable(Callable::NativeCall(NativeCall::new(-1, println)));
+        let println_object = Object::Callable(Callable::NativeCall(NativeCall::new("println".to_string(),-1, println)));
 
         environment.declare_value("println", println_object.wrap());
 
@@ -70,7 +70,7 @@ impl AstInterpreter {
             Ok(Object::None.wrap())
         };
 
-        let print_object = Object::Callable(Callable::NativeCall(NativeCall::new(-1, print)));
+        let print_object = Object::Callable(Callable::NativeCall(NativeCall::new("print".to_string(),-1, print)));
 
         environment.declare_value("print", print_object.wrap())
     }
@@ -219,6 +219,44 @@ impl StatementVisitor for AstInterpreter {
         Err(errors::Error::Interpret(
             "Cannot execute a nil statement".to_string(),
         ))
+    }
+
+    fn visit_class_statement(&mut self, class_statement: &crate::language::class::ClassStatement) -> Self::Output {
+        let class_name = class_statement.name.object.to_string();
+        let mut class_superclass = None;
+        self.environment.write().unwrap().declare_value(&class_name, Object::None.wrap());
+
+        let mut class_environment = Arc::clone(&self.environment);
+
+        if let Some(superclass_expr) = &class_statement.superclass {
+            let superclass = self.evaluate(superclass_expr)?;
+            let binding = superclass.read();
+
+            if !binding.unwrap().is_class() {
+                return Err(errors::Error::Runtime(format!("{}: superclass must be a class", class_statement.name.object.to_string())))
+            }
+
+            let mut new_environment = Environment::with_parent(Arc::clone(&class_environment));
+            new_environment.declare_value("super", Arc::clone(&superclass));
+            class_environment = Arc::new(RwLock::new(new_environment));
+            class_superclass = Some(superclass)
+        }
+
+        let mut methods = HashMap::new();
+        for method in &class_statement.methods {
+            let initializer = method.name.object.to_string().as_str() == "init";
+
+            let function = DefinedCall::new(Box::new(method.clone()), Arc::clone(&class_environment), initializer);
+            methods.insert(method.name.object.to_string(), Object::Callable(Callable::DefinedCall(function)).wrap());
+        }
+
+        let class = ClassObject::new(class_name.clone(), class_superclass, methods);
+        let class = Object::Callable(Callable::Class(class)).wrap();
+
+        let env_binding = self.environment.write();
+        env_binding.unwrap().set_value(&class_name, class)?;
+
+        Ok(())
     }
 }
 
@@ -382,11 +420,29 @@ impl ExpressionVisitor for AstInterpreter {
         Ok(Object::None.wrap())
     }
 
-    fn visit_get(&mut self, _get: &super::statement::assignment::Get) -> Self::Output {
-        todo!()
+    fn visit_get(&mut self, get: &super::statement::assignment::Get) -> Self::Output {
+        let object = self.evaluate(&get.object)?;
+        let binding = object.read();
+        if let Object::Instance(instance) = &*binding.unwrap() {
+            return instance.get(&get.name);
+        }
+
+        Err(errors::Error::Runtime(format!("Only Instances have properties")))
     }
 
-    fn visit_set(&mut self, _set: &super::statement::assignment::Set) -> Self::Output {
-        todo!()
+    fn visit_set(&mut self, set: &super::statement::assignment::Set) -> Self::Output {
+        let object = self.evaluate(&set.object)?;
+        let binding = object.write();
+        let name = set.name.clone();
+
+        if let Object::Instance(mut instance) = binding.unwrap().to_owned() {
+            let value = self.evaluate(&set.value)?;
+            instance.set(name, Arc::clone(&value));
+            return Ok(value);
+        }
+
+        
+        return Err(errors::Error::Runtime(format!("Only instances have fields")));
+
     }
 }

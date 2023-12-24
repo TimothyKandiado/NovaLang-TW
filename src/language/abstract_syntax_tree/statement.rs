@@ -4,12 +4,13 @@ pub mod declaration;
 pub mod function;
 pub mod if_statement;
 pub mod while_loop;
+pub mod class;
 
 pub use block::Block;
 pub use if_statement::IfStatement;
 pub use while_loop::WhileLoop;
 
-use self::{declaration::VariableDeclaration, function::FunctionStatement};
+use self::{declaration::VariableDeclaration, function::FunctionStatement, class::ClassStatement};
 
 use super::{expression::Expression, visitor::StatementVisitor};
 
@@ -23,6 +24,7 @@ pub enum Statement {
     ReturnStatement(Option<Expression>),
     VariableDeclaration(VariableDeclaration),
     ExpressionStatement(Expression),
+    ClassStatement(ClassStatement)
 }
 
 impl Statement {
@@ -42,6 +44,7 @@ impl Statement {
             Self::ExpressionStatement(expression_statement) => {
                 visitor.visit_expression_statement(expression_statement)
             }
+            Self::ClassStatement(class_statement) => class_statement.accept(visitor)
         }
     }
 }

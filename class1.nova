@@ -1,0 +1,14 @@
+class person
+    fn init()
+        println("person initialized")
+    end
+end
+
+let p1 = person()
+let p2 = person()
+
+p1.age = 23
+p2.age = 34
+
+println("person 1 age = ", p1.age)
+println("person 2 age = ", p2.age)

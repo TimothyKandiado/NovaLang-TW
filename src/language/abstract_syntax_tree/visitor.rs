@@ -1,3 +1,5 @@
+use crate::language::class::ClassStatement;
+
 use super::{
     expression::{
         binary::Binary, call::Call, grouping::Grouping, literal::Literal, unary::Unary,
@@ -36,4 +38,5 @@ pub trait StatementVisitor {
     fn visit_return(&mut self, return_statement: &Option<Expression>) -> Self::Output;
     fn visit_var_declaration(&mut self, var_declaration: &VariableDeclaration) -> Self::Output;
     fn visit_expression_statement(&mut self, expression_statement: &Expression) -> Self::Output;
+    fn visit_class_statement(&mut self, class_statement: &ClassStatement) -> Self::Output;
 }
