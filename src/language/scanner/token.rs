@@ -23,7 +23,7 @@ pub enum TokenType {
     Class,
     Let,
     Block,
-    Delete, 
+    Delete,
     If,
     Else,
     For,
@@ -44,7 +44,6 @@ pub enum TokenType {
     LessEqual,
     Greater,
     Less,
-
 }
 
 #[derive(Debug, Clone, PartialEq, PartialOrd)]

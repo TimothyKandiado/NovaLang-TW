@@ -1,4 +1,4 @@
-use crate::language::{Token, Expression, StatementVisitor};
+use crate::language::{Expression, StatementVisitor, Token};
 
 use super::function::FunctionStatement;
 
@@ -6,12 +6,20 @@ use super::function::FunctionStatement;
 pub struct ClassStatement {
     pub name: Token,
     pub superclass: Option<Expression>,
-    pub methods: Vec<FunctionStatement>
+    pub methods: Vec<FunctionStatement>,
 }
 
 impl ClassStatement {
-    pub fn new(name: Token, superclass: Option<Expression>, methods: Vec<FunctionStatement>) -> Self {
-        Self { name, superclass, methods }
+    pub fn new(
+        name: Token,
+        superclass: Option<Expression>,
+        methods: Vec<FunctionStatement>,
+    ) -> Self {
+        Self {
+            name,
+            superclass,
+            methods,
+        }
     }
 
     pub fn accept<T>(&self, visitor: &mut impl StatementVisitor<Output = T>) -> T {

@@ -61,15 +61,14 @@ fn run_file(path: &str) {
     let code = result.unwrap();
 
     let parsed_ast = generate_parsed_ast(&code);
-        if let Err(err) = parsed_ast {
-            println!("{}", err);
-            return;
-        }
+    if let Err(err) = parsed_ast {
+        println!("{}", err);
+        return;
+    }
 
     let parsed_ast = parsed_ast.unwrap();
 
     let mut interpreter = AstInterpreter::new();
-
 
     let result = interpreter.interpret(parsed_ast);
     #[cfg(feature = "debug")]

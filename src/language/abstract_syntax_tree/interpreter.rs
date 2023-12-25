@@ -1,6 +1,7 @@
 use std::{
+    collections::HashMap,
     io::{self, Write},
-    sync::{Arc, RwLock}, collections::HashMap,
+    sync::{Arc, RwLock},
 };
 
 use super::{
@@ -12,7 +13,7 @@ use super::{
 use crate::language::{
     errors,
     scanner::{
-        object::{Callable, NativeCall, Object, WrappedObject, DefinedCall, ClassObject},
+        object::{Callable, ClassObject, DefinedCall, NativeCall, Object, WrappedObject},
         token::TokenType,
     },
 };
@@ -53,7 +54,11 @@ impl AstInterpreter {
             Ok(Object::None.wrap())
         };
 
-        let println_object = Object::Callable(Callable::NativeCall(NativeCall::new("println".to_string(),-1, println)));
+        let println_object = Object::Callable(Callable::NativeCall(NativeCall::new(
+            "println".to_string(),
+            -1,
+            println,
+        )));
 
         environment.declare_value("println", println_object.wrap());
 
@@ -70,24 +75,28 @@ impl AstInterpreter {
             Ok(Object::None.wrap())
         };
 
-        let print_object = Object::Callable(Callable::NativeCall(NativeCall::new("print".to_string(),-1, print)));
+        let print_object = Object::Callable(Callable::NativeCall(NativeCall::new(
+            "print".to_string(),
+            -1,
+            print,
+        )));
 
         environment.declare_value("print", print_object.wrap());
 
         let time = |_interpreter: &mut AstInterpreter,
-                     arguments: &Vec<WrappedObject>|
+                    arguments: &Vec<WrappedObject>|
          -> Result<WrappedObject, errors::Error> {
             let argument = Arc::clone(&arguments[0]);
 
             let binding = argument.read().unwrap();
             if let Object::String(option) = &*binding {
-                match  option.as_str(){
+                match option.as_str() {
                     "milli" => {
                         let epoch = chrono::Utc::now().timestamp_millis();
                         #[cfg(feature = "debug")]
                         println!("epoch = {}", epoch);
 
-                        return Ok(Object::Number(epoch as f64).wrap())
+                        return Ok(Object::Number(epoch as f64).wrap());
                     }
 
                     "micro" => {
@@ -95,7 +104,7 @@ impl AstInterpreter {
                         #[cfg(feature = "debug")]
                         println!("epoch = {}", epoch);
 
-                        return Ok(Object::Number(epoch as f64).wrap())
+                        return Ok(Object::Number(epoch as f64).wrap());
                     }
 
                     "sec" => {
@@ -103,20 +112,22 @@ impl AstInterpreter {
                         #[cfg(feature = "debug")]
                         println!("epoch = {}", epoch);
 
-                        return Ok(Object::Number(epoch as f64).wrap())
+                        return Ok(Object::Number(epoch as f64).wrap());
                     }
 
                     "nano" => {
-                        
                         let epoch = chrono::Utc::now().timestamp_nanos_opt().unwrap();
                         #[cfg(feature = "debug")]
                         println!("epoch = {}", epoch);
 
-                        return Ok(Object::Number(epoch as f64).wrap())
+                        return Ok(Object::Number(epoch as f64).wrap());
                     }
 
                     _ => {
-                        return Err(errors::Error::Runtime(format!("Unknown option: {}", option)))
+                        return Err(errors::Error::Runtime(format!(
+                            "Unknown option: {}",
+                            option
+                        )))
                     }
                 }
             }
@@ -124,7 +135,11 @@ impl AstInterpreter {
             Ok(Object::None.wrap())
         };
 
-        let time_object = Object::Callable(Callable::NativeCall(NativeCall::new("time".to_string(),1, time)));
+        let time_object = Object::Callable(Callable::NativeCall(NativeCall::new(
+            "time".to_string(),
+            1,
+            time,
+        )));
 
         environment.declare_value("time", time_object.wrap())
     }
@@ -225,10 +240,17 @@ impl StatementVisitor for AstInterpreter {
         function_statement: &super::statement::function::FunctionStatement,
     ) -> Self::Output {
         let function = function_statement.clone();
-        let function = Callable::DefinedCall(DefinedCall::new(Box::new(function), Arc::clone(&self.environment), false));
+        let function = Callable::DefinedCall(DefinedCall::new(
+            Box::new(function),
+            Arc::clone(&self.environment),
+            false,
+        ));
         let function = Arc::new(RwLock::new(Object::Callable(function)));
 
-        self.environment.write().unwrap().declare_value(function_statement.name.object.to_string().as_str(), function);
+        self.environment.write().unwrap().declare_value(
+            function_statement.name.object.to_string().as_str(),
+            function,
+        );
 
         Ok(())
     }
@@ -275,10 +297,16 @@ impl StatementVisitor for AstInterpreter {
         ))
     }
 
-    fn visit_class_statement(&mut self, class_statement: &crate::language::class::ClassStatement) -> Self::Output {
+    fn visit_class_statement(
+        &mut self,
+        class_statement: &crate::language::class::ClassStatement,
+    ) -> Self::Output {
         let class_name = class_statement.name.object.to_string();
         let mut class_superclass = None;
-        self.environment.write().unwrap().declare_value(&class_name, Object::None.wrap());
+        self.environment
+            .write()
+            .unwrap()
+            .declare_value(&class_name, Object::None.wrap());
 
         let mut class_environment = Arc::clone(&self.environment);
 
@@ -287,7 +315,10 @@ impl StatementVisitor for AstInterpreter {
             let binding = superclass.read();
 
             if !binding.unwrap().is_class() {
-                return Err(errors::Error::Runtime(format!("{}: superclass must be a class", class_statement.name.object.to_string())))
+                return Err(errors::Error::Runtime(format!(
+                    "{}: superclass must be a class",
+                    class_statement.name.object
+                )));
             }
 
             let mut new_environment = Environment::with_parent(Arc::clone(&class_environment));
@@ -300,8 +331,15 @@ impl StatementVisitor for AstInterpreter {
         for method in &class_statement.methods {
             let initializer = method.name.object.to_string().as_str() == "init";
 
-            let function = DefinedCall::new(Box::new(method.clone()), Arc::clone(&class_environment), initializer);
-            methods.insert(method.name.object.to_string(), Object::Callable(Callable::DefinedCall(function)).wrap());
+            let function = DefinedCall::new(
+                Box::new(method.clone()),
+                Arc::clone(&class_environment),
+                initializer,
+            );
+            methods.insert(
+                method.name.object.to_string(),
+                Object::Callable(Callable::DefinedCall(function)).wrap(),
+            );
         }
 
         let class = ClassObject::new(class_name.clone(), class_superclass, methods);
@@ -481,7 +519,9 @@ impl ExpressionVisitor for AstInterpreter {
             return instance.get(&get.name);
         }
 
-        Err(errors::Error::Runtime(format!("Only Instances have properties")))
+        Err(errors::Error::Runtime(
+            "Only Instances have properties".to_string(),
+        ))
     }
 
     fn visit_set(&mut self, set: &super::statement::assignment::Set) -> Self::Output {
@@ -497,8 +537,8 @@ impl ExpressionVisitor for AstInterpreter {
             return Ok(value);
         }
 
-        
-        return Err(errors::Error::Runtime(format!("Only instances have fields")));
-
+        Err(errors::Error::Runtime(
+            "Only instances have fields".to_string(),
+        ))
     }
 }

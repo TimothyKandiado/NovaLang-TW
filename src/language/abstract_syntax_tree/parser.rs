@@ -1,9 +1,10 @@
 use crate::language::{
+    class::ClassStatement,
     errors,
     scanner::{
         object::Object,
         token::{Token, TokenType},
-    }, class::ClassStatement,
+    },
 };
 
 use super::{
@@ -80,13 +81,17 @@ impl AstParser {
     }
 
     fn class_declaration(&mut self) -> Result<Statement, errors::Error> {
-        let name = self.consume(TokenType::Identifier, "Expect class name")?.clone();
+        let name = self
+            .consume(TokenType::Identifier, "Expect class name")?
+            .clone();
 
         let mut superclass = None;
 
         if self.match_tokens(&[TokenType::Colon]) {
             let superclass_name = self.consume(TokenType::Identifier, "Expect superclass name")?;
-            let _ = superclass.insert(Expression::Variable(Box::new(Variable::new(superclass_name.clone()))));
+            let _ = superclass.insert(Expression::Variable(Box::new(Variable::new(
+                superclass_name.clone(),
+            ))));
         }
 
         self.consume(TokenType::NewLine, "Expect newline before class body")?;
@@ -100,15 +105,22 @@ impl AstParser {
                 }
                 //self.consume(TokenType::NewLine, "Expect newline after end of method")?;
                 continue;
-            } 
+            }
 
             return Err(self.error(&name, "Error parsing class"));
         }
 
         self.consume(TokenType::End, "Expect 'end' after class declaration")?;
-        self.consume(TokenType::NewLine, "Expect newline after end of class declaration")?;
+        self.consume(
+            TokenType::NewLine,
+            "Expect newline after end of class declaration",
+        )?;
 
-        return Ok(Statement::ClassStatement(ClassStatement::new(name.clone(), superclass, methods)))
+        Ok(Statement::ClassStatement(ClassStatement::new(
+            name.clone(),
+            superclass,
+            methods,
+        )))
     }
 
     fn var_declaration(&mut self) -> Result<Statement, errors::Error> {
@@ -168,12 +180,11 @@ impl AstParser {
                 name,
                 parameters,
                 body,
-            })))
+            })));
         }
 
         let previous = self.previous().clone();
-        return Err(self.error(&previous, "Error parsing function"))
-        
+        Err(self.error(&previous, "Error parsing function"))
     }
 
     fn statement(&mut self) -> Result<Statement, errors::Error> {

@@ -1,11 +1,17 @@
 use std::{
+    collections::HashMap,
     fmt::Display,
-    sync::{Arc, RwLock}, collections::HashMap
+    sync::{Arc, RwLock},
 };
 
 use interpreter::AstInterpreter;
 
-use crate::language::{abstract_syntax_tree::{interpreter, environment::Environment}, errors, function::FunctionStatement, Token};
+use crate::language::{
+    abstract_syntax_tree::{environment::Environment, interpreter},
+    errors,
+    function::FunctionStatement,
+    Token,
+};
 
 pub type WrappedObject = Arc<RwLock<Object>>;
 
@@ -16,7 +22,7 @@ pub enum Object {
     Number(f64),
     String(String),
     Callable(Callable),
-    Instance(Instance)
+    Instance(Instance),
 }
 
 impl Object {
@@ -33,22 +39,13 @@ impl Object {
     }
 
     pub fn is_class(&self) -> bool {
-        match self {
-            Self::Callable(Callable::Class(_)) => true,
-            _ => false
-        }
-    } 
-
-    pub fn is_instance(&self) -> bool {
-        match self {
-            Self::Instance(_) => true,
-            _ => false
-        }
+        matches!(self, Self::Callable(Callable::Class(_)))
     }
 
+    pub fn is_instance(&self) -> bool {
+        matches!(self, Self::Instance(_))
+    }
 }
-
-
 
 impl Display for Object {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -69,7 +66,7 @@ impl Display for Object {
 pub enum Callable {
     NativeCall(NativeCall),
     DefinedCall(DefinedCall),
-    Class(ClassObject)
+    Class(ClassObject),
 }
 
 impl Callable {
@@ -77,7 +74,7 @@ impl Callable {
         match self {
             Self::NativeCall(native_call) => native_call.arity(),
             Self::DefinedCall(defined_call) => defined_call.arity(),
-            Self::Class(class_obj) => class_obj.arity()
+            Self::Class(class_obj) => class_obj.arity(),
         }
     }
 
@@ -89,15 +86,7 @@ impl Callable {
         match self {
             Self::NativeCall(native_call) => native_call.call(interpreter, arguments),
             Self::DefinedCall(defined_call) => defined_call.call(interpreter, arguments),
-            Self::Class(class) => class.call(interpreter, arguments)
-        }
-    }
-
-    pub fn to_string(&self) -> String {
-        match self {
-            Self::Class(class) => class.to_string(),
-            Self::DefinedCall(defined_call) => defined_call.to_string(),
-            Self::NativeCall(native_call) => native_call.to_string(),
+            Self::Class(class) => class.call(interpreter, arguments),
         }
     }
 }
@@ -111,6 +100,20 @@ impl PartialOrd for Callable {
 impl PartialEq for Callable {
     fn eq(&self, _other: &Self) -> bool {
         true
+    }
+}
+
+impl Display for Callable {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Class(class) => class.to_string(),
+                Self::DefinedCall(defined_call) => defined_call.to_string(),
+                Self::NativeCall(native_call) => native_call.to_string(),
+            }
+        )
     }
 }
 
@@ -133,14 +136,14 @@ impl NativeCall {
             arguments: &Vec<WrappedObject>,
         ) -> Result<WrappedObject, errors::Error>,
     ) -> Self {
-        Self { name, arity, function }
+        Self {
+            name,
+            arity,
+            function,
+        }
     }
     pub fn arity(&self) -> i8 {
         self.arity
-    }
-
-    pub fn to_string(&self) -> String {
-        format!("function: {}", self.name)
     }
 
     pub fn call(
@@ -152,25 +155,33 @@ impl NativeCall {
     }
 }
 
+impl Display for NativeCall {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "function: {}", self.name)
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct DefinedCall {
     declaration: Box<FunctionStatement>,
     closure: Arc<RwLock<Environment>>,
-    pub initializer: bool
+    pub initializer: bool,
 }
 
 impl DefinedCall {
-    pub fn new(declaration: Box<FunctionStatement>, closure: Arc<RwLock<Environment>>, initializer: bool) -> Self {
+    pub fn new(
+        declaration: Box<FunctionStatement>,
+        closure: Arc<RwLock<Environment>>,
+        initializer: bool,
+    ) -> Self {
         Self {
-            declaration, closure, initializer
+            declaration,
+            closure,
+            initializer,
         }
     }
     pub fn arity(&self) -> i8 {
         self.declaration.parameters.len() as i8
-    }
-
-    pub fn to_string(&self) -> String {
-        format!("function: {}", self.declaration.name.object.to_string())
     }
 
     pub fn bind(&self, instance: WrappedObject) -> DefinedCall {
@@ -187,25 +198,36 @@ impl DefinedCall {
         arguments: &Vec<WrappedObject>,
     ) -> Result<WrappedObject, errors::Error> {
         let mut environment = Environment::with_parent(Arc::clone(&self.closure));
-        for (parameter, value) in &self.declaration.parameters.iter().zip(arguments).collect::<Vec<_>>() {
+        for (parameter, value) in &self
+            .declaration
+            .parameters
+            .iter()
+            .zip(arguments)
+            .collect::<Vec<_>>()
+        {
             environment.declare_value(parameter.object.to_string().as_str(), Arc::clone(*value));
         }
 
         let new_environment = Arc::new(RwLock::new(environment));
 
-
         let result = interpreter.execute_block(&self.declaration.body, new_environment);
 
         if result.is_ok() {
-            return Ok(Object::None.wrap())
+            return Ok(Object::None.wrap());
         }
 
         let error = result.unwrap_err();
         if let errors::Error::Return(object) = error {
-            return Ok(object)
+            return Ok(object);
         }
-        
+
         Err(error)
+    }
+}
+
+impl Display for DefinedCall {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        writeln!(f, "function: {}", self.declaration.name.object)
     }
 }
 
@@ -213,19 +235,27 @@ impl DefinedCall {
 pub struct ClassObject {
     name: String,
     superclass: Option<WrappedObject>,
-    methods: HashMap<String, WrappedObject>
+    methods: HashMap<String, WrappedObject>,
 }
 
 impl ClassObject {
-    pub fn new(name: String, superclass: Option<WrappedObject>, methods: HashMap<String, WrappedObject>) -> Self {
-        Self { name, superclass, methods }
+    pub fn new(
+        name: String,
+        superclass: Option<WrappedObject>,
+        methods: HashMap<String, WrappedObject>,
+    ) -> Self {
+        Self {
+            name,
+            superclass,
+            methods,
+        }
     }
 
     pub fn arity(&self) -> i8 {
         if let Some(initializer) = self.methods.get("init") {
             let object_binding = initializer.read();
             if let Object::Callable(Callable::DefinedCall(method)) = &*object_binding.unwrap() {
-                return method.arity()
+                return method.arity();
             }
         }
 
@@ -247,8 +277,12 @@ impl ClassObject {
         None
     }
 
-    pub fn call(&self, interpreter: &mut AstInterpreter, arguments: &Vec<WrappedObject>) -> Result<WrappedObject, errors::Error> {
-        let instance_id = InstanceID{value: 1};
+    pub fn call(
+        &self,
+        interpreter: &mut AstInterpreter,
+        arguments: &Vec<WrappedObject>,
+    ) -> Result<WrappedObject, errors::Error> {
+        let instance_id = InstanceID { value: 1 };
         let instance = Instance::new(instance_id, self.clone());
         let instance = Object::Instance(instance).wrap();
 
@@ -256,7 +290,7 @@ impl ClassObject {
         if let Some(initializer) = initializer {
             let initializer = Arc::clone(initializer);
             let binding = initializer.read().unwrap();
-            
+
             if let Object::Callable(Callable::DefinedCall(defined_call)) = &*binding {
                 let bound_call = defined_call.bind(Arc::clone(&instance));
                 bound_call.call(interpreter, arguments)?;
@@ -265,58 +299,73 @@ impl ClassObject {
 
         Ok(instance)
     }
+}
 
-    pub fn to_string(&self) -> String {
-        format!("class: {}", self.name)
+impl Display for ClassObject {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "class : {}", self.name)
     }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
 pub struct InstanceID {
-    pub value: usize
+    pub value: usize,
 }
 
 #[derive(Debug, Clone)]
 pub struct Instance {
     pub id: InstanceID,
     class: ClassObject,
-    fields: HashMap<String, WrappedObject>
+    fields: HashMap<String, WrappedObject>,
 }
 
 impl Instance {
     pub fn new(id: InstanceID, class: ClassObject) -> Self {
-        Self { id, class, fields: HashMap::new() }
+        Self {
+            id,
+            class,
+            fields: HashMap::new(),
+        }
     }
 
     pub fn get(&self, name_token: &Token) -> Result<WrappedObject, errors::Error> {
         let name = name_token.object.to_string();
         if let Some(field) = self.fields.get(&name) {
-            return Ok(Arc::clone(field))
+            return Ok(Arc::clone(field));
         }
 
         if let Some(method) = self.class.find_method(&name) {
-            return Ok(Arc::clone(&method))
+            return Ok(Arc::clone(&method));
         }
 
-        Err(errors::Error::Runtime(format!("Undefined property {}", name)))
+        Err(errors::Error::Runtime(format!(
+            "Undefined property {}",
+            name
+        )))
     }
 
     pub fn set(&mut self, name_token: Token, value: WrappedObject) {
         #[cfg(feature = "debug")]
-        println!("(dbg) setting field {} = {}", name_token.object.to_string(), value.read().unwrap().to_string());
+        println!(
+            "(dbg) setting field {} = {}",
+            name_token.object.to_string(),
+            value.read().unwrap().to_string()
+        );
         self.fields.insert(name_token.object.to_string(), value);
     }
+}
 
-    pub fn to_string(&self) -> String {
+impl Display for Instance {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut description = String::new();
         description.push_str(&format!("Instance of {}", self.class.name));
         for (name, field) in &self.fields {
             description.push('\n');
             let binding = field.read().unwrap();
-            description.push_str(&format!("field: ({} = {})", name, (*binding).to_string()));
+            description.push_str(&format!("field: ({} = {})", name, (*binding)));
         }
 
-        return description;
+        write!(f, "{}", description)
     }
 }
 
