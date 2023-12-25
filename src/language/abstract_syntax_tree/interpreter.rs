@@ -13,7 +13,10 @@ use super::{
 use crate::language::{
     errors,
     scanner::{
-        object::{Callable, ClassObject, DefinedCall, NativeCall, Object, WrappedObject},
+        object::{
+            Callable, ClassObject, DefinedCall, InstanceIDCreator, NativeCall, Object,
+            WrappedObject,
+        },
         token::TokenType,
     },
 };
@@ -21,6 +24,7 @@ use crate::language::{
 /// A simple abstract syntax tree interpreter
 pub struct AstInterpreter {
     environment: Arc<RwLock<Environment>>,
+    pub id_maker: InstanceIDCreator,
 }
 
 impl Default for AstInterpreter {
@@ -37,6 +41,7 @@ impl AstInterpreter {
         let global = Arc::new(RwLock::new(global_env));
         Self {
             environment: Arc::new(RwLock::new(Environment::with_parent(global))),
+            id_maker: InstanceIDCreator::new(),
         }
     }
 
@@ -273,7 +278,11 @@ impl StatementVisitor for AstInterpreter {
 
         if let Some(initializer) = &var_declaration.initializer {
             let initializer = self.evaluate(initializer)?;
-            value = Arc::new(RwLock::new(initializer.read().unwrap().clone()));
+            if initializer.read().unwrap().prefers_copy() {
+                value = Arc::new(RwLock::new(initializer.read().unwrap().clone()));
+            } else {
+                value = initializer;
+            }
         }
 
         let env_writer = self.environment.write();

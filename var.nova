@@ -1,0 +1,10 @@
+let a = 90
+let b = -7E3
+
+let c = a
+
+println("a = ", a, ", b = ", b, ", c = ", c)
+
+a = a * a
+
+println("a = ", a, ", b = ", b, ", c = ", c)

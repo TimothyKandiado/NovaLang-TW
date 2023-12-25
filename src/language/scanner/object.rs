@@ -45,6 +45,12 @@ impl Object {
     pub fn is_instance(&self) -> bool {
         matches!(self, Self::Instance(_))
     }
+
+    /// returns true if object can be copied to create another object,
+    /// returns false if object should be referenced instead
+    pub fn prefers_copy(&self) -> bool {
+        matches!(self, Self::Bool(_) | Self::Number(_) | Self::String(_))
+    }
 }
 
 impl Display for Object {
@@ -282,7 +288,7 @@ impl ClassObject {
         interpreter: &mut AstInterpreter,
         arguments: &Vec<WrappedObject>,
     ) -> Result<WrappedObject, errors::Error> {
-        let instance_id = InstanceID { value: 1 };
+        let instance_id = interpreter.id_maker.get_new_id();
         let instance = Instance::new(instance_id, self.clone());
         let instance = Object::Instance(instance).wrap();
 
@@ -307,9 +313,34 @@ impl Display for ClassObject {
     }
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, PartialOrd)]
+#[derive(Debug, Default)]
+pub struct InstanceIDCreator {
+    current_id: u128,
+}
+
+impl InstanceIDCreator {
+    pub fn new() -> Self {
+        Self { current_id: 0 }
+    }
+
+    pub fn get_new_id(&mut self) -> InstanceID {
+        let id = InstanceID {
+            value: self.current_id,
+        };
+        self.current_id += 1;
+        id
+    }
+}
+
+#[derive(Debug, Clone, PartialEq, PartialOrd, Default)]
 pub struct InstanceID {
-    pub value: usize,
+    pub value: u128,
+}
+
+impl Display for InstanceID {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{}", self.value)
+    }
 }
 
 #[derive(Debug, Clone)]
@@ -358,7 +389,10 @@ impl Instance {
 impl Display for Instance {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let mut description = String::new();
-        description.push_str(&format!("Instance of {}", self.class.name));
+        description.push_str(&format!(
+            "Instance of {} | ID: {}",
+            self.class.name, &self.id
+        ));
         for (name, field) in &self.fields {
             description.push('\n');
             let binding = field.read().unwrap();

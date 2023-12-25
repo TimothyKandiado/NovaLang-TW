@@ -5,10 +5,19 @@ class person
 end
 
 let p1 = person()
+let p3 = p1
 let p2 = person()
 
 p1.age = 23
 p2.age = 34
 
+p1.name = "Sanji"
+p2.name = "Shanks"
+
+
 println("person 1 age = ", p1.age)
 println("person 2 age = ", p2.age)
+println("person 3 age = ", p3.age)
+
+println("p1 equal to p2: ", p1==p2)
+println("p1 equal to p3: ", p1==p3)
