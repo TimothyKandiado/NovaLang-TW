@@ -435,7 +435,9 @@ impl ExpressionVisitor for AstInterpreter {
         let binding = object.write();
         let name = set.name.clone();
 
-        if let Object::Instance(mut instance) = binding.unwrap().to_owned() {
+        let writable_binding = &mut *binding.unwrap();
+
+        if let Object::Instance(ref mut instance) = writable_binding {
             let value = self.evaluate(&set.value)?;
             instance.set(name, Arc::clone(&value));
             return Ok(value);

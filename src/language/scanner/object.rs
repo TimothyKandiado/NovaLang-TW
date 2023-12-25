@@ -301,11 +301,21 @@ impl Instance {
     }
 
     pub fn set(&mut self, name_token: Token, value: WrappedObject) {
+        #[cfg(feature = "debug")]
+        println!("(dbg) setting field {} = {}", name_token.object.to_string(), value.read().unwrap().to_string());
         self.fields.insert(name_token.object.to_string(), value);
     }
 
     pub fn to_string(&self) -> String {
-        return format!("class: {} Instance", self.class.name)
+        let mut description = String::new();
+        description.push_str(&format!("Instance of {}", self.class.name));
+        for (name, field) in &self.fields {
+            description.push('\n');
+            let binding = field.read().unwrap();
+            description.push_str(&format!("field: ({} = {})", name, (*binding).to_string()));
+        }
+
+        return description;
     }
 }
 

@@ -4,7 +4,7 @@ use std::{
     process::exit,
 };
 
-use nova_tw::language::{self, generate_parsed_ast, AstInterpreter};
+use nova_tw::language::{generate_parsed_ast, AstInterpreter};
 
 const PROMPT: &str = ">>";
 fn main() {
@@ -60,7 +60,20 @@ fn run_file(path: &str) {
 
     let code = result.unwrap();
 
-    let result = language::interpret(&code);
+    let parsed_ast = generate_parsed_ast(&code);
+        if let Err(err) = parsed_ast {
+            println!("{}", err);
+            return;
+        }
+
+    let parsed_ast = parsed_ast.unwrap();
+
+    let mut interpreter = AstInterpreter::new();
+
+
+    let result = interpreter.interpret(parsed_ast);
+    #[cfg(feature = "debug")]
+    interpreter.print_environment();
 
     if let Err(err) = result {
         println!("{}", err);
