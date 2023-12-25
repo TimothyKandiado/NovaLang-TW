@@ -72,7 +72,61 @@ impl AstInterpreter {
 
         let print_object = Object::Callable(Callable::NativeCall(NativeCall::new("print".to_string(),-1, print)));
 
-        environment.declare_value("print", print_object.wrap())
+        environment.declare_value("print", print_object.wrap());
+
+        let time = |_interpreter: &mut AstInterpreter,
+                     arguments: &Vec<WrappedObject>|
+         -> Result<WrappedObject, errors::Error> {
+            let argument = Arc::clone(&arguments[0]);
+
+            let binding = argument.read().unwrap();
+            if let Object::String(option) = &*binding {
+                match  option.as_str(){
+                    "milli" => {
+                        let epoch = chrono::Utc::now().timestamp_millis();
+                        #[cfg(feature = "debug")]
+                        println!("epoch = {}", epoch);
+
+                        return Ok(Object::Number(epoch as f64).wrap())
+                    }
+
+                    "micro" => {
+                        let epoch = chrono::Utc::now().timestamp_micros();
+                        #[cfg(feature = "debug")]
+                        println!("epoch = {}", epoch);
+
+                        return Ok(Object::Number(epoch as f64).wrap())
+                    }
+
+                    "sec" => {
+                        let epoch = chrono::Utc::now().timestamp();
+                        #[cfg(feature = "debug")]
+                        println!("epoch = {}", epoch);
+
+                        return Ok(Object::Number(epoch as f64).wrap())
+                    }
+
+                    "nano" => {
+                        
+                        let epoch = chrono::Utc::now().timestamp_nanos_opt().unwrap();
+                        #[cfg(feature = "debug")]
+                        println!("epoch = {}", epoch);
+
+                        return Ok(Object::Number(epoch as f64).wrap())
+                    }
+
+                    _ => {
+                        return Err(errors::Error::Runtime(format!("Unknown option: {}", option)))
+                    }
+                }
+            }
+
+            Ok(Object::None.wrap())
+        };
+
+        let time_object = Object::Callable(Callable::NativeCall(NativeCall::new("time".to_string(),1, time)));
+
+        environment.declare_value("time", time_object.wrap())
     }
 
     pub fn interpret(&mut self, statements: Vec<Statement>) -> Result<(), errors::Error> {
