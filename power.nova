@@ -1,0 +1,8 @@
+let first = 1
+let last = 100
+let number = first
+
+while number <= last
+    println(number, " ^ 2 = ", number ^ 2)
+    number = number + 1
+end
