@@ -68,6 +68,7 @@ impl Scanner {
             '-' => Ok(simple_token(TokenType::Minus, self.line)),
             '*' => Ok(simple_token(TokenType::Star, self.line)),
             '/' => Ok(simple_token(TokenType::Slash, self.line)),
+            '^' => Ok(simple_token(TokenType::Caret, self.line)),
 
             '(' => Ok(simple_token(TokenType::LeftParen, self.line)),
             ')' => Ok(simple_token(TokenType::RightParen, self.line)),

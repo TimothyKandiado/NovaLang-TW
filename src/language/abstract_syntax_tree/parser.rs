@@ -439,9 +439,22 @@ impl AstParser {
     }
 
     fn multiplication(&mut self) -> Result<Expression, errors::Error> {
-        let mut expression = self.unary()?;
+        let mut expression = self.power()?;
 
         while self.match_tokens(&[TokenType::Star, TokenType::Slash]) {
+            let operator = self.previous().to_owned();
+            let right = self.unary()?;
+
+            expression = Expression::Binary(Box::new(Binary::new(expression, right, operator)))
+        }
+
+        Ok(expression)
+    }
+
+    fn power(&mut self) -> Result<Expression, errors::Error> {
+        let mut expression = self.unary()?;
+
+        while self.match_tokens(&[TokenType::Caret]) {
             let operator = self.previous().to_owned();
             let right = self.unary()?;
 

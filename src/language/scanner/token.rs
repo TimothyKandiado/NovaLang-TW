@@ -18,6 +18,7 @@ pub enum TokenType {
     Comma,
     None,
     Eof,
+    Caret,
 
     Fn,
     Class,
