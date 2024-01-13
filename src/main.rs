@@ -17,7 +17,7 @@ fn main() {
 }
 
 fn repl() {
-    let mut interpreter = AstInterpreter::new();
+    let mut interpreter = AstInterpreter::interactive();
 
     loop {
         let mut input = String::new();
@@ -28,8 +28,6 @@ fn repl() {
             eprintln!("Error getting input");
             exit(1)
         }
-
-        //let input = input.trim();
 
         if input == "quit\r\n" || input == "Quit\r\n" {
             println!("exiting");

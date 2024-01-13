@@ -25,6 +25,7 @@ use crate::language::{
 pub struct AstInterpreter {
     environment: Arc<RwLock<Environment>>,
     pub id_maker: InstanceIDCreator,
+    pub interactive: bool,
 }
 
 impl Default for AstInterpreter {
@@ -42,7 +43,14 @@ impl AstInterpreter {
         Self {
             environment: Arc::new(RwLock::new(Environment::with_parent(global))),
             id_maker: InstanceIDCreator::new(),
+            interactive: false,
         }
+    }
+
+    pub fn interactive() -> Self {
+        let mut intepreter = Self::new();
+        intepreter.interactive = true;
+        intepreter
     }
 
     fn load_native_functions(environment: &mut Environment) {
@@ -296,7 +304,15 @@ impl StatementVisitor for AstInterpreter {
     }
 
     fn visit_expression_statement(&mut self, expression_statement: &Expression) -> Self::Output {
-        self.evaluate(expression_statement)?;
+        let object = self.evaluate(expression_statement)?;
+        if self.interactive {
+            let binding = object.read();
+
+            if let Ok(value) = binding {
+                let value = &*value;
+                println!("{}", value);
+            }
+        }
         Ok(())
     }
 

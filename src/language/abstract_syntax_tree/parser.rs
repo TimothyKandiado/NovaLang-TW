@@ -205,6 +205,7 @@ impl AstParser {
         }
 
         if self.match_tokens(&[TokenType::Block]) {
+            self.consume(TokenType::NewLine, "expect newline before start of block")?;
             return self.block_statement(&[TokenType::End], true);
         }
 
