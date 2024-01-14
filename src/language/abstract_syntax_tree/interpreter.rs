@@ -1,14 +1,14 @@
 use std::{
     collections::HashMap,
     io::{self, Write},
-    sync::{Arc, RwLock},
+    sync::{Arc, RwLock}, fs,
 };
 
 use super::{
     environment::Environment,
     expression::Expression,
     statement::{Block, Statement},
-    visitor::{ExpressionVisitor, StatementVisitor},
+    visitor::{ExpressionVisitor, StatementVisitor}, parser,
 };
 use crate::language::{
     errors,
@@ -17,7 +17,7 @@ use crate::language::{
             Callable, ClassObject, DefinedCall, InstanceIDCreator, NativeCall, Object,
             WrappedObject,
         },
-        token::TokenType,
+        token::TokenType, self,
     },
 };
 
@@ -109,7 +109,6 @@ impl AstInterpreter {
                 let code = code.floor().abs() as usize;
                 return Err(errors::Error::Exit(code))
             }
-
             
             Err(errors::Error::Runtime("Can only pass a number as exit code".to_string()))
         };
@@ -187,6 +186,36 @@ impl AstInterpreter {
     pub fn interpret(&mut self, statements: Vec<Statement>) -> Result<(), errors::Error> {
         for statement in statements {
             self.execute(&statement)?;
+        }
+
+        Ok(())
+    }
+
+    /// load file contents into interpreter
+    pub fn load_file(&mut self, name: &str) -> Result<(), errors::Error> {
+        let contents = fs::read_to_string(name);
+        if let Err(err) = contents {
+            return Err(errors::Error::Runtime(format!("Error importing file: {}/n{}", name, err)));
+        }
+        let source = contents.unwrap();
+        let tokens = scanner::Scanner::new().scan_tokens(&source);
+
+        if let Err(err) = tokens {
+            return Err(errors::Error::Runtime(format!("Error importing file: {}/n{}", name, err)));
+        }
+        let tokens = tokens.unwrap();
+        let parser = parser::AstParser::new(tokens);
+        let statements = parser.parse_ast();
+
+        if let Err(err) = statements {
+            return Err(errors::Error::Runtime(format!("Error importing file: {}/n{}", name, err)));
+        }
+        let statements = statements.unwrap();
+
+        let result = self.interpret(statements);
+
+        if let Err(err) = result {
+            return Err(errors::Error::Runtime(format!("Error importing file: {}/n{}", name, err)));
         }
 
         Ok(())
@@ -418,6 +447,21 @@ impl StatementVisitor for AstInterpreter {
 
         let env_binding = self.environment.write();
         env_binding.unwrap().set_value(&class_name, class)?;
+
+        Ok(())
+    }
+
+    fn visit_include(&mut self, include: &crate::language::Include) -> Self::Output {
+        for file_expression in &include.files {
+            let object = self.evaluate(file_expression)?;
+            let binding = object.read().unwrap();
+
+            if let Object::String(name) = &*binding {
+                self.load_file(name)?;
+                continue;
+            }
+            return Err(errors::Error::Runtime(format!("invalid argument for include: ({})", &*binding)));
+        }
 
         Ok(())
     }

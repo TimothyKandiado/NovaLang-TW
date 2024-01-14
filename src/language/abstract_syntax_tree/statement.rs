@@ -5,10 +5,12 @@ pub mod declaration;
 pub mod function;
 pub mod if_statement;
 pub mod while_loop;
+pub mod include;
 
 pub use block::Block;
 pub use if_statement::IfStatement;
 pub use while_loop::WhileLoop;
+pub use include::Include;
 
 use self::{class::ClassStatement, declaration::VariableDeclaration, function::FunctionStatement};
 
@@ -25,6 +27,7 @@ pub enum Statement {
     VariableDeclaration(VariableDeclaration),
     ExpressionStatement(Expression),
     ClassStatement(ClassStatement),
+    Include(Include),
 }
 
 impl Statement {
@@ -45,6 +48,7 @@ impl Statement {
                 visitor.visit_expression_statement(expression_statement)
             }
             Self::ClassStatement(class_statement) => class_statement.accept(visitor),
+            Self::Include(include) => include.accept(visitor),
         }
     }
 }

@@ -4,7 +4,7 @@ use crate::language::{
     scanner::{
         object::Object,
         token::{Token, TokenType},
-    },
+    }, Include,
 };
 
 use super::{
@@ -204,12 +204,31 @@ impl AstParser {
             return self.while_statement();
         }
 
+        if self.match_tokens(&[TokenType::Include]) {
+            return self.include_statement();
+        }
+
         if self.match_tokens(&[TokenType::Block]) {
             self.consume(TokenType::NewLine, "expect newline before start of block")?;
             return self.block_statement(&[TokenType::End], true);
         }
 
         self.expression_statement()
+    }
+
+    fn include_statement(&mut self) -> Result<Statement, errors::Error> {
+        let mut files = Vec::new();
+
+        loop {
+            let file = self.expression()?;
+            files.push(file);
+
+            if self.match_tokens(&[TokenType::NewLine]) {
+                break;
+            }
+        }
+
+        Ok(Statement::Include(Include {files}))
     }
 
     fn for_statement(&mut self) -> Result<Statement, errors::Error> {

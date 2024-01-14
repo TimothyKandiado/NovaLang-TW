@@ -34,6 +34,8 @@ pub enum TokenType {
     Return,
     True,
     False,
+    Include,
+
     And,
     Or,
     Not,
