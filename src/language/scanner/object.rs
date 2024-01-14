@@ -46,6 +46,10 @@ impl Object {
         matches!(self, Self::Instance(_))
     }
 
+    pub fn is_none(&self) -> bool {
+        matches!(self, Self::None)
+    }
+
     /// returns true if object can be copied to create another object,
     /// returns false if object should be referenced instead
     pub fn prefers_copy(&self) -> bool {

@@ -325,7 +325,9 @@ impl StatementVisitor for AstInterpreter {
 
             if let Ok(value) = binding {
                 let value = &*value;
-                println!("{}", value);
+                if !value.is_none() {
+                    println!("{}", value);
+                }
             }
         }
         Ok(())
