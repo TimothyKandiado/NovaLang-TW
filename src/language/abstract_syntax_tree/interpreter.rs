@@ -74,7 +74,7 @@ impl AstInterpreter {
             println,
         )));
 
-        environment.declare_value("println", println_object.wrap());
+        environment.declare_constant("println", println_object).unwrap();
 
         // print function
         let print = |_interpreter: &mut AstInterpreter,
@@ -96,7 +96,7 @@ impl AstInterpreter {
             print,
         )));
 
-        environment.declare_value("print", print_object.wrap());
+        environment.declare_constant("print", print_object).unwrap();
 
         // exit function
         let exit = |_interpreter: &mut AstInterpreter,
@@ -120,7 +120,7 @@ impl AstInterpreter {
             exit,
         )));
 
-        environment.declare_value("exit", exit_object.wrap());
+        environment.declare_constant("exit", exit_object).unwrap();
 
         // time function
         let time = |_interpreter: &mut AstInterpreter,
@@ -181,7 +181,7 @@ impl AstInterpreter {
             time,
         )));
 
-        environment.declare_value("time", time_object.wrap())
+        environment.declare_constant("time", time_object).unwrap();
     }
 
     pub fn interpret(&mut self, statements: Vec<Statement>) -> Result<(), errors::Error> {

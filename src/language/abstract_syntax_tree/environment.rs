@@ -1,5 +1,8 @@
 use std::borrow::BorrowMut;
+use std::cell::RefCell;
 use std::fmt::Display;
+use std::mem;
+use std::rc::Rc;
 use std::sync::RwLock;
 use std::{collections::HashMap as Map, sync::Arc};
 
@@ -9,6 +12,7 @@ use crate::language::{errors, scanner::object::Object};
 pub struct Environment {
     parent: Option<Arc<RwLock<Environment>>>,
     values: Map<String, Arc<RwLock<Object>>>,
+    constants: Rc<RefCell<Map<String, Object>>>
 }
 
 impl Default for Environment {
@@ -22,13 +26,19 @@ impl Environment {
         Self {
             parent: None,
             values: Map::new(),
+            constants: Rc::new(RefCell::new(Map::new()))
         }
     }
 
     pub fn with_parent(parent: Arc<RwLock<Environment>>) -> Self {
+        let binding = parent.read().unwrap();
+        let constants = Rc::clone(&(*binding).constants);
+        mem::drop(binding);
+
         Self {
             parent: Some(parent),
             values: Map::new(),
+            constants
         }
     }
 
@@ -36,11 +46,26 @@ impl Environment {
         self.values.insert(name.to_string(), value);
     }
 
+    pub fn declare_constant(&mut self, name: &str, value: Object) -> Result<(), errors::Error>{
+        if self.constants.borrow().contains_key(name) {
+            return Err(errors::Error::Runtime(format!("Cannot declare an existing constant {}", name)));
+        }
+
+        let constants = self.constants.as_ref();
+        constants.borrow_mut().insert(name.to_string(), value);
+        Ok(())
+    }
+
     pub fn set_value(
         &mut self,
         name: &str,
         value: Arc<RwLock<Object>>,
     ) -> Result<(), errors::Error> {
+        
+        if self.constants.borrow().contains_key(name) {
+            return Err(errors::Error::Runtime(format!("Cannot assign to constant value: {}", name)));
+        }
+
         if self.values.contains_key(name) {
             self.declare_value(name, value);
             return Ok(());
@@ -64,6 +89,10 @@ impl Environment {
     }
 
     pub fn get_value(&self, name: &str) -> Arc<RwLock<Object>> {
+        if let Some(value) = self.constants.borrow().get(name) {
+            return value.clone().wrap()
+        }
+
         if let Some(value) = self.values.get(name) {
             return Arc::clone(value);
         }
