@@ -192,15 +192,17 @@ impl AstInterpreter {
         result
     }
 
-
     fn evaluate(&mut self, expression: &Expression) -> Result<WrappedObject, errors::Error> {
         expression.accept::<Result<WrappedObject, errors::Error>>(self)
     }
 
-    fn execute_call(&mut self, callee: WrappedObject, arguments: Vec<WrappedObject>) -> Result<WrappedObject, errors::Error> {
+    fn execute_call(
+        &mut self,
+        callee: WrappedObject,
+        arguments: Vec<WrappedObject>,
+    ) -> Result<WrappedObject, errors::Error> {
         let callee_binding = callee.read().unwrap();
         if let Object::Callable(callable) = &(*callee_binding) {
-
             if callable.arity() != arguments.len() as i8 && callable.arity() != -1 {
                 return Err(errors::Error::intepret_error("too many function arguments"));
             }
@@ -464,7 +466,9 @@ impl ExpressionVisitor for AstInterpreter {
                     return Ok(Object::Number(left.powf(*right)).wrap());
                 }
 
-                Err(errors::Error::intepret_error("Cannot find power of non numbers"))
+                Err(errors::Error::intepret_error(
+                    "Cannot find power of non numbers",
+                ))
             }
 
             TokenType::Or => Ok(Object::Bool((*left).is_truthy() || (*right).is_truthy()).wrap()),
@@ -568,7 +572,7 @@ impl ExpressionVisitor for AstInterpreter {
                 return self.execute_call(object, arguments);
             }
 
-            return Ok(object)
+            return Ok(object);
         }
 
         Err(errors::Error::Runtime(

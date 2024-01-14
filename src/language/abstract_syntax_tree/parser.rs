@@ -481,8 +481,10 @@ impl AstParser {
         if self.match_tokens(&[TokenType::LeftParen]) {
             return self.finish_call(expression);
         } else if self.match_tokens(&[TokenType::Dot]) {
-            let name = self.consume(TokenType::Identifier, "Expect name after '.'")?.clone();
-            let mut arguments  = None;
+            let name = self
+                .consume(TokenType::Identifier, "Expect name after '.'")?
+                .clone();
+            let mut arguments = None;
             if self.match_tokens(&[TokenType::LeftParen]) {
                 arguments = Some(self.get_arguments()?);
                 self.consume(TokenType::RightParen, "Expect ')' after arguments")?;
@@ -491,7 +493,7 @@ impl AstParser {
             return Ok(Expression::Get(Box::new(Get {
                 object: expression,
                 name,
-                arguments
+                arguments,
             })));
         }
 

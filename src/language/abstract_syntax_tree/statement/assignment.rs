@@ -19,7 +19,7 @@ impl Assign {
 pub struct Get {
     pub object: Expression,
     pub name: Token,
-    pub arguments: Option<Vec<Expression>>
+    pub arguments: Option<Vec<Expression>>,
 }
 
 impl Get {
