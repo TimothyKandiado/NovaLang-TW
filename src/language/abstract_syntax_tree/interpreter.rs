@@ -192,8 +192,23 @@ impl AstInterpreter {
         result
     }
 
+
     fn evaluate(&mut self, expression: &Expression) -> Result<WrappedObject, errors::Error> {
         expression.accept::<Result<WrappedObject, errors::Error>>(self)
+    }
+
+    fn execute_call(&mut self, callee: WrappedObject, arguments: Vec<WrappedObject>) -> Result<WrappedObject, errors::Error> {
+        let callee_binding = callee.read().unwrap();
+        if let Object::Callable(callable) = &(*callee_binding) {
+
+            if callable.arity() != arguments.len() as i8 && callable.arity() != -1 {
+                return Err(errors::Error::intepret_error("too many function arguments"));
+            }
+
+            return callable.call(self, &arguments);
+        }
+
+        Err(errors::Error::intepret_error("undefined function"))
     }
 
     pub fn print_environment(&self) {
@@ -500,8 +515,7 @@ impl ExpressionVisitor for AstInterpreter {
     }
 
     fn visit_call(&mut self, call: &super::expression::call::Call) -> Self::Output {
-        let callee_binding = self.evaluate(&call.callee)?;
-        let callee = callee_binding.read().unwrap();
+        let callee = self.evaluate(&call.callee)?;
 
         let mut arguments = Vec::new();
 
@@ -509,15 +523,7 @@ impl ExpressionVisitor for AstInterpreter {
             arguments.push(self.evaluate(argument)?);
         }
 
-        if let Object::Callable(callable) = &(*callee) {
-            if callable.arity() != arguments.len() as i8 && callable.arity() != -1 {
-                return Err(errors::Error::intepret_error("too many function arguments"));
-            }
-
-            return callable.call(self, &arguments);
-        }
-
-        Err(errors::Error::intepret_error("undefined function"))
+        self.execute_call(callee, arguments)
     }
 
     fn visit_variable(&mut self, variable: &super::expression::variable::Variable) -> Self::Output {
@@ -549,7 +555,18 @@ impl ExpressionVisitor for AstInterpreter {
         let object = self.evaluate(&get.object)?;
         let binding = object.read();
         if let Object::Instance(instance) = &*binding.unwrap() {
-            return instance.get(&get.name);
+            let object = instance.get(&get.name)?;
+            if let Some(argument_expresssions) = &get.arguments {
+                let mut arguments = Vec::new();
+
+                for argument_expression in argument_expresssions {
+                    arguments.push(self.evaluate(argument_expression)?);
+                }
+
+                return self.execute_call(object, arguments);
+            }
+
+            return Ok(object)
         }
 
         Err(errors::Error::Runtime(

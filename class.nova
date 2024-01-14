@@ -11,3 +11,5 @@ end
 let n = test()
 let m = n.method
 m()
+n.method()
+

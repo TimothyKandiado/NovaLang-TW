@@ -481,17 +481,24 @@ impl AstParser {
         if self.match_tokens(&[TokenType::LeftParen]) {
             return self.finish_call(expression);
         } else if self.match_tokens(&[TokenType::Dot]) {
-            let name = self.consume(TokenType::Identifier, "Expect name after '.'")?;
+            let name = self.consume(TokenType::Identifier, "Expect name after '.'")?.clone();
+            let mut arguments  = None;
+            if self.match_tokens(&[TokenType::LeftParen]) {
+                arguments = Some(self.get_arguments()?);
+                self.consume(TokenType::RightParen, "Expect ')' after arguments")?;
+            }
+
             return Ok(Expression::Get(Box::new(Get {
                 object: expression,
-                name: name.clone(),
+                name,
+                arguments
             })));
         }
 
         Ok(expression)
     }
 
-    fn finish_call(&mut self, callee: Expression) -> Result<Expression, errors::Error> {
+    fn get_arguments(&mut self) -> Result<Vec<Expression>, errors::Error> {
         let mut arguments = Vec::new();
         if !self.check(TokenType::RightParen) {
             loop {
@@ -506,6 +513,12 @@ impl AstParser {
                 }
             }
         }
+
+        Ok(arguments)
+    }
+
+    fn finish_call(&mut self, callee: Expression) -> Result<Expression, errors::Error> {
+        let arguments = self.get_arguments()?;
 
         let paren = self
             .consume(TokenType::RightParen, "Expect ')' after arguments")?
