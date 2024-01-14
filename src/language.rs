@@ -1,5 +1,5 @@
 mod abstract_syntax_tree;
-mod errors;
+pub mod errors;
 mod scanner;
 
 pub use abstract_syntax_tree::{interpreter::AstInterpreter, parser::AstParser};

@@ -4,7 +4,7 @@ use std::{
     process::exit,
 };
 
-use nova_tw::language::{generate_parsed_ast, AstInterpreter};
+use nova_tw::language::{generate_parsed_ast, AstInterpreter, errors};
 
 const PROMPT: &str = ">>";
 fn main() {
@@ -43,6 +43,10 @@ fn repl() {
         let result = interpreter.interpret(parsed_ast);
         //interpreter.print_environment();
         if let Err(err) = result {
+            if let errors::Error::Exit(code) = err {
+                println!("Exit code: {}", code);
+                return;
+            }
             println!("{}", err)
         }
     }
@@ -73,6 +77,11 @@ fn run_file(path: &str) {
     interpreter.print_environment();
 
     if let Err(err) = result {
+        if let errors::Error::Exit(code) = err {
+            println!("Exit code: {}", code);
+            return;
+        }
+
         println!("{}", err);
     }
 }

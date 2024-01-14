@@ -54,6 +54,7 @@ impl AstInterpreter {
     }
 
     fn load_native_functions(environment: &mut Environment) {
+        // println function
         let println = |_interpreter: &mut AstInterpreter,
                        arguments: &Vec<WrappedObject>|
          -> Result<WrappedObject, errors::Error> {
@@ -75,6 +76,7 @@ impl AstInterpreter {
 
         environment.declare_value("println", println_object.wrap());
 
+        // print function
         let print = |_interpreter: &mut AstInterpreter,
                      arguments: &Vec<WrappedObject>|
          -> Result<WrappedObject, errors::Error> {
@@ -96,6 +98,31 @@ impl AstInterpreter {
 
         environment.declare_value("print", print_object.wrap());
 
+        // exit function
+        let exit = |_interpreter: &mut AstInterpreter,
+                     arguments: &Vec<WrappedObject>|
+         -> Result<WrappedObject, errors::Error> {
+            let code = &arguments[0];
+            let binding = code.read().unwrap();
+
+            if let Object::Number(code) = &*binding {
+                let code = code.floor().abs() as usize;
+                return Err(errors::Error::Exit(code))
+            }
+
+            
+            Err(errors::Error::Runtime("Can only pass a number as exit code".to_string()))
+        };
+
+        let exit_object = Object::Callable(Callable::NativeCall(NativeCall::new(
+            "exit".to_string(),
+            1,
+            exit,
+        )));
+
+        environment.declare_value("exit", exit_object.wrap());
+
+        // time function
         let time = |_interpreter: &mut AstInterpreter,
                     arguments: &Vec<WrappedObject>|
          -> Result<WrappedObject, errors::Error> {

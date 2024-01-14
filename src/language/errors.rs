@@ -12,6 +12,7 @@ pub enum Error {
     Interpret(String),
     Runtime(String),
     Return(Arc<RwLock<Object>>),
+    Exit(usize),
 }
 
 impl Display for Error {
@@ -20,17 +21,22 @@ impl Display for Error {
             f,
             "{}",
             match self {
-                Self::Parse(description) => description,
-                Self::Scan(description) => description,
-                Self::Interpret(description) => description,
-                Self::Runtime(description) => description,
-                Self::Return(_) => "return",
+                Self::Parse(description) => description.clone(),
+                Self::Scan(description) => description.clone(),
+                Self::Interpret(description) => description.clone(),
+                Self::Runtime(description) => description.clone(),
+                Self::Return(_) => "return".to_string(),
+                Self::Exit(code) => format!("{}", code),
             }
         )
     }
 }
 
 impl Error {
+    pub fn is_exit(&self) -> bool {
+        matches!(self, Self::Exit(_))
+    }
+    
     pub fn scan_error(description: &str) -> Self {
         Self::Scan(description.to_string())
     }
