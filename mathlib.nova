@@ -1,0 +1,11 @@
+fn sum(a, b)
+    return a+b
+end
+
+fn multiply(a, b)
+    return a*b
+end
+
+fn hello(name)
+    println("Hello, ", name, "! Nice to meet you.")
+end

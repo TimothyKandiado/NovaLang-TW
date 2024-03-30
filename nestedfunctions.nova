@@ -1,0 +1,9 @@
+fn get_counter()
+    let number = 1
+
+    fn next()
+        number = number + 1
+        return number - 1
+    end
+    return next
+end

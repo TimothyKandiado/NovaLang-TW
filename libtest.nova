@@ -1,0 +1,5 @@
+include "mathlib.nova"
+
+println(sum(2, 4))
+println(multiply(3, 7))
+hello("Tmore")
