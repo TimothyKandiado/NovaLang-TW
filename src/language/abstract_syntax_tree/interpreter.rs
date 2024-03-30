@@ -260,7 +260,7 @@ impl AstInterpreter {
         let callee_binding = callee.read().unwrap();
         if let Object::Callable(callable) = &(*callee_binding) {
             if callable.arity() != arguments.len() as i8 && callable.arity() != -1 {
-                return Err(errors::Error::intepret_error("too many function arguments"));
+                return Err(errors::Error::intepret_error(&format!("unmatching function arguments. {} arguments required", callable.arity())));
             }
 
             return callable.call(self, &arguments);

@@ -64,6 +64,9 @@ impl AstParser {
                 self.function_declaration("function")
             } else if self.match_tokens(&[TokenType::Let]) {
                 self.var_declaration()
+            }
+            else if self.check_next(TokenType::ColonEqual) {
+                self.var_declaration()
             } else {
                 self.statement()
             }
@@ -130,7 +133,7 @@ impl AstParser {
 
         let mut initializer = None;
 
-        if self.match_tokens(&[TokenType::Equal]) {
+        if self.match_tokens(&[TokenType::Equal, TokenType::ColonEqual]) {
             initializer = Some(self.expression()?);
         }
 
@@ -621,6 +624,7 @@ impl AstParser {
         Err(self.error(&previous, error_message))
     }
 
+    /// Check if the current token is of the given type
     fn check(&self, token_type: TokenType) -> bool {
         if self.is_at_end() {
             return false;
@@ -629,18 +633,30 @@ impl AstParser {
         self.peek().token_type == token_type
     }
 
+    fn check_next(&self, token_type: TokenType) -> bool { 
+        let next = self.peek_next();
+        if let Some(token) = next {
+            return token.token_type == token_type;
+        }
+        return false
+    }
+
+    /// Check if we are at the end of file
     fn is_at_end(&self) -> bool {
         self.peek().token_type == TokenType::Eof
     }
 
+    /// Get the current token
     fn peek(&self) -> &Token {
         &self.tokens[self.current]
     }
 
-    /* fn peek_next(&self) -> Option<&Token> {
+    /// Get the next token
+    fn peek_next(&self) -> Option<&Token> {
         self.tokens.get(self.current + 1)
-    } */
+    } 
 
+    /// Get the previous token
     fn previous(&self) -> &Token {
         &self.tokens[self.current - 1]
     }
