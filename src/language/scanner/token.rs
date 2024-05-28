@@ -10,6 +10,7 @@ pub enum TokenType {
     Minus,
     Star,
     Slash,
+    Percent,
     Colon,
     LeftParen,
     RightParen,

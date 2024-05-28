@@ -463,7 +463,7 @@ impl AstParser {
     fn multiplication(&mut self) -> Result<Expression, errors::Error> {
         let mut expression = self.power()?;
 
-        while self.match_tokens(&[TokenType::Star, TokenType::Slash]) {
+        while self.match_tokens(&[TokenType::Star, TokenType::Slash, TokenType::Percent]) {
             let operator = self.previous().to_owned();
             let right = self.unary()?;
 
