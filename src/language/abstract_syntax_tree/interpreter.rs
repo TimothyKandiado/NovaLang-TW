@@ -542,6 +542,16 @@ impl ExpressionVisitor for AstInterpreter {
                 ))
             }
 
+            TokenType::Percent => {
+                if let (Object::Number(left), Object::Number(right)) = ((&*left), &(*right)) {
+                    return Ok(Object::Number(left % right).wrap());
+                }
+
+                Err(errors::Error::intepret_error(
+                    "Cannot find power of non numbers",
+                ))
+            }
+
             TokenType::Or => Ok(Object::Bool((*left).is_truthy() || (*right).is_truthy()).wrap()),
 
             TokenType::And => Ok(Object::Bool((*left).is_truthy() && (*right).is_truthy()).wrap()),
