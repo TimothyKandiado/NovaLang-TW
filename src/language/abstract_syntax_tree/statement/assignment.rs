@@ -7,6 +7,7 @@ use crate::language::{
 pub struct Assign {
     pub name: Token,
     pub value: Expression,
+    pub line: usize,
 }
 
 impl Assign {

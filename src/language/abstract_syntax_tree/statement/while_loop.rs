@@ -6,4 +6,5 @@ use super::Statement;
 pub struct WhileLoop {
     pub condition: Expression,
     pub body: Statement,
+    pub line: usize,
 }

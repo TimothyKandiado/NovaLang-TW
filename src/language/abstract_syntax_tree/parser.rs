@@ -123,6 +123,7 @@ impl AstParser {
             name.clone(),
             superclass,
             methods,
+            name.line
         )))
     }
 
@@ -141,10 +142,11 @@ impl AstParser {
             TokenType::NewLine,
             "Expected new line after variable declaration",
         )?;
-
+        let line = name.line;
         Ok(Statement::VariableDeclaration(VariableDeclaration {
             name,
             initializer,
+            line,
         }))
     }
 
@@ -178,11 +180,13 @@ impl AstParser {
             "Expect newline after function parameters",
         )?;
         let body = self.block_statement(&[TokenType::End], true)?;
+        let line = name.line;
         if let Statement::Block(body) = body {
             return Ok(Statement::FunctionStatement(Box::new(FunctionStatement {
                 name,
                 parameters,
                 body,
+                line,
             })));
         }
 
@@ -231,7 +235,8 @@ impl AstParser {
             }
         }
 
-        Ok(Statement::Include(Include {files}))
+        let line = self.previous().line;
+        Ok(Statement::Include(Include {files, line}))
     }
 
     fn for_statement(&mut self) -> Result<Statement, errors::Error> {
@@ -240,7 +245,8 @@ impl AstParser {
 
     fn if_statement(&mut self) -> Result<Statement, errors::Error> {
         let condition = self.expression()?;
-        self.consume(TokenType::NewLine, "Expect new line after while condition")?;
+        let current = self.consume(TokenType::NewLine, "Expect new line after while condition")?;
+        let line = current.line;
 
         let then_branch = self.block_statement(&[TokenType::End, TokenType::Else], false)?;
         let mut else_branch = None;
@@ -257,6 +263,7 @@ impl AstParser {
             condition,
             then_branch,
             else_branch,
+            line
         })))
     }
 
@@ -278,12 +285,14 @@ impl AstParser {
         //self.consume(TokenType::LeftParen, "Expect '(' before condition")?;
         let condition = self.expression()?;
         //self.consume(TokenType::RightParen, "Expect ')' after condition")?;
-        self.consume(TokenType::NewLine, "Expect new line after while condition")?;
+        let current = self.consume(TokenType::NewLine, "Expect new line after while condition")?;
+        let line = current.line;
 
         let body = self.block_statement(&[TokenType::End], true)?;
         Ok(Statement::WhileLoop(Box::new(WhileLoop {
             condition,
             body,
+            line,
         })))
     }
 
@@ -298,6 +307,7 @@ impl AstParser {
         while !self.match_tokens(end_tokens) && !self.is_at_end() {
             statements.push(self.declaration())
         }
+        let line = self.previous().line;
 
         self.current -= 1;
 
@@ -306,7 +316,7 @@ impl AstParser {
             self.consume(TokenType::NewLine, "expect newline after block")?;
         }
 
-        Ok(Statement::Block(Block { statements }))
+        Ok(Statement::Block(Block { statements, line }))
     }
 
     fn expression_statement(&mut self) -> Result<Statement, errors::Error> {
@@ -346,6 +356,7 @@ impl AstParser {
 
     fn assignment(&mut self) -> Result<Expression, errors::Error> {
         let expression = self.or()?;
+        let line = self.previous().line;
 
         if self.match_tokens(&[TokenType::Equal]) {
             let equals = self.previous().clone();
@@ -353,7 +364,7 @@ impl AstParser {
 
             if let Expression::Variable(variable) = &expression {
                 let name = variable.name.clone();
-                return Ok(Expression::Assign(Box::new(Assign { name, value })));
+                return Ok(Expression::Assign(Box::new(Assign { name, value, line})));
             } else if let Expression::Get(get) = &expression {
                 let get = *get.clone();
 

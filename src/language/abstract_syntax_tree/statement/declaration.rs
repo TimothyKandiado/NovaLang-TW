@@ -4,4 +4,5 @@ use crate::language::{abstract_syntax_tree::expression::Expression, scanner::tok
 pub struct VariableDeclaration {
     pub name: Token,
     pub initializer: Option<Expression>,
+    pub line: usize,
 }

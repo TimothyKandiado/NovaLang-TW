@@ -7,4 +7,5 @@ pub struct FunctionStatement {
     pub name: Token,
     pub parameters: Vec<Token>,
     pub body: Block,
+    pub line: usize,
 }

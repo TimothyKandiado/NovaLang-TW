@@ -7,6 +7,7 @@ pub struct ClassStatement {
     pub name: Token,
     pub superclass: Option<Expression>,
     pub methods: Vec<FunctionStatement>,
+    pub line: usize,
 }
 
 impl ClassStatement {
@@ -14,11 +15,13 @@ impl ClassStatement {
         name: Token,
         superclass: Option<Expression>,
         methods: Vec<FunctionStatement>,
+        line: usize,
     ) -> Self {
         Self {
             name,
             superclass,
             methods,
+            line
         }
     }
 
