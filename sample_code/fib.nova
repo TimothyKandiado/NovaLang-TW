@@ -4,6 +4,7 @@ let max = 30
 
 println("fibonacci")
 println(b)
+
 while a < max
     let temp = a + b
     println(temp)

@@ -45,11 +45,20 @@ impl Scanner {
             tokens.push(token);
         }
 
+        if let Some(last) = tokens.last() {
+            if last.token_type != TokenType::NewLine {
+                let token = simple_token(TokenType::NewLine, self.line);
+                tokens.push(token);
+            }
+        }
+
         tokens.push(Token {
             token_type: TokenType::Eof,
             object: object::Object::None,
             line: self.line,
         });
+
+        
 
         Ok(tokens)
     }

@@ -4,7 +4,13 @@ let time_type = "sec"
 
 
 fn fibonacci(num)
-    if num < 1
+    #println("current value = ", num)
+
+    if num <= 1
+        return 0
+    end
+
+    if num == 2
         return 1
     end
 
@@ -13,9 +19,9 @@ end
 
 
 let start_time = time(time_type)
-
-println(fibonacci(28))
-
+number := 35
+value := fibonacci(number)
+println("fibonacci(", number, ") = ", value)
 let end_time = time(time_type)
 
 println("duration = ", end_time - start_time, " ", time_type, "s")
