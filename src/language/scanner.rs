@@ -349,7 +349,7 @@ fn is_identifier_rest(character: char) -> bool {
     is_identifier_start(character) || character.is_ascii_digit()
 }
 #[cfg(test)]
-mod tests {
+mod scanner_tests {
     use crate::language::scanner::object::Object;
     use crate::language::scanner::token::Token;
     use crate::language::scanner::token::TokenType;
@@ -367,6 +367,11 @@ mod tests {
                 Token {
                     token_type: TokenType::Number,
                     object: Object::Number(100.0),
+                    line: 1
+                },
+                Token {
+                    token_type: TokenType::NewLine,
+                    object: Object::None,
                     line: 1
                 },
                 Token {
@@ -389,6 +394,11 @@ mod tests {
                 Token {
                     token_type: TokenType::Identifier,
                     object: Object::String("sin".to_string()),
+                    line: 1
+                },
+                Token {
+                    token_type: TokenType::NewLine,
+                    object: Object::None,
                     line: 1
                 },
                 Token {
@@ -430,6 +440,11 @@ mod tests {
                 },
                 Token {
                     token_type: TokenType::End,
+                    object: Object::None,
+                    line: 2
+                },
+                Token {
+                    token_type: TokenType::NewLine,
                     object: Object::None,
                     line: 2
                 },
@@ -496,6 +511,11 @@ mod tests {
                     line: 1
                 },
                 Token {
+                    token_type: TokenType::NewLine,
+                    object: Object::None,
+                    line: 1
+                },
+                Token {
                     token_type: TokenType::Eof,
                     object: Object::None,
                     line: 1
@@ -519,6 +539,11 @@ mod tests {
                 simple_token(TokenType::Less, 1),
                 simple_token(TokenType::NotEqual, 1),
                 Token {
+                    token_type: TokenType::NewLine,
+                    object: Object::None,
+                    line: 1
+                },
+                Token {
                     token_type: TokenType::Eof,
                     object: Object::None,
                     line: 1
@@ -540,6 +565,11 @@ mod tests {
                 simple_token(TokenType::Not, 1),
                 simple_token(TokenType::And, 1),
                 simple_token(TokenType::Or, 1),
+                Token {
+                    token_type: TokenType::NewLine,
+                    object: Object::None,
+                    line: 1
+                },
                 Token {
                     token_type: TokenType::Eof,
                     object: Object::None,
