@@ -281,12 +281,14 @@ impl AstParser {
     }
 
     fn return_statement(&mut self) -> Result<Statement, errors::Error> {
-        let _keyword = self.previous();
+        let keyword = self.previous();
+        let line = keyword.line;
+        let filename = self.filename.clone();
 
         let mut value = None;
 
         if !self.check(TokenType::NewLine) {
-            value = Some(self.expression()?);
+            value = Some((self.expression()?, line, filename));
         }
 
         self.consume(TokenType::NewLine, "Expect newline after return statement")?;

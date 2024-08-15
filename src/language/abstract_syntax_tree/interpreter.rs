@@ -5,10 +5,7 @@ use std::{
 };
 
 use super::{
-    environment::Environment,
-    expression::Expression,
-    statement::{Block, Statement},
-    visitor::{ExpressionVisitor, StatementVisitor}, parser,
+    environment::Environment, expression::Expression, parser, statement::{Block, Statement}, visitor::{ExpressionVisitor, StatementVisitor}
 };
 use crate::language::{
     errors,
@@ -345,10 +342,12 @@ impl StatementVisitor for AstInterpreter {
         Ok(())
     }
 
-    fn visit_return(&mut self, return_statement: &Option<Expression>) -> Self::Output {
+    fn visit_return(&mut self, return_statement: &Option<(Expression, usize, String)>) -> Self::Output {
         let mut object = Object::None.wrap();
 
         if let Some(expression) = return_statement {
+            let expression = &expression.0;
+            
             object = self.evaluate(expression)?;
         }
 

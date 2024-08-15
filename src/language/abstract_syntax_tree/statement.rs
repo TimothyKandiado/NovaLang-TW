@@ -23,7 +23,7 @@ pub enum Statement {
     WhileLoop(Box<WhileLoop>),
     Block(Block),
     FunctionStatement(Box<FunctionStatement>),
-    ReturnStatement(Option<Expression>),
+    ReturnStatement(Option<(Expression, usize, String)>),
     VariableDeclaration(VariableDeclaration),
     ExpressionStatement(Expression),
     ClassStatement(ClassStatement),
