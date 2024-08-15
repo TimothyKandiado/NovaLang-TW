@@ -191,6 +191,10 @@ impl AstInterpreter {
         Ok(())
     }
 
+    pub fn generate_error(&mut self, message: String) -> Result<(), errors::Error> {
+        return Err(errors::Error::Runtime(message));
+    }
+
     /// load file contents into interpreter
     pub fn load_file(&mut self, name: &str) -> Result<(), errors::Error> {
         let contents = fs::read_to_string(name);
