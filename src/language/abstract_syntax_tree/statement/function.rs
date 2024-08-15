@@ -8,4 +8,5 @@ pub struct FunctionStatement {
     pub parameters: Vec<Token>,
     pub body: Block,
     pub line: usize,
+    pub filename: String,
 }

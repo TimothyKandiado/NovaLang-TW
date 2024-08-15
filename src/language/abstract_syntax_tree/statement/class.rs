@@ -8,6 +8,7 @@ pub struct ClassStatement {
     pub superclass: Option<Expression>,
     pub methods: Vec<FunctionStatement>,
     pub line: usize,
+    pub filename: String,
 }
 
 impl ClassStatement {
@@ -16,12 +17,15 @@ impl ClassStatement {
         superclass: Option<Expression>,
         methods: Vec<FunctionStatement>,
         line: usize,
+        filename: String,
+        
     ) -> Self {
         Self {
             name,
             superclass,
             methods,
-            line
+            line,
+            filename
         }
     }
 

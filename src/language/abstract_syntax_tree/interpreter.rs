@@ -198,7 +198,7 @@ impl AstInterpreter {
             return Err(errors::Error::Runtime(format!("Error importing file: {}/n{}", name, err)));
         }
         let source = contents.unwrap();
-        let tokens = scanner::Scanner::new().scan_tokens(&source);
+        let tokens = scanner::Scanner::new().scan_tokens_with_filename(&source, name);
 
         if let Err(err) = tokens {
             return Err(errors::Error::Runtime(format!("Error importing file: {}/n{}", name, err)));

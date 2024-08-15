@@ -7,4 +7,5 @@ pub struct WhileLoop {
     pub condition: Expression,
     pub body: Statement,
     pub line: usize,
+    pub filename: String,
 }

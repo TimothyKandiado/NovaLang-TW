@@ -11,8 +11,8 @@ pub use scanner::token::{Token, TokenType};
 
 pub use abstract_syntax_tree::{expression::*, statement::*, visitor::*};
 
-pub fn interpret(source: &str) -> Result<(), errors::Error> {
-    let statements = generate_parsed_ast(source)?;
+pub fn interpret(source: &str, filename: &str) -> Result<(), errors::Error> {
+    let statements = generate_parsed_ast(source, filename)?;
     //println!("Expression: {:?}", expression);
 
     let mut interpreter = AstInterpreter::new();
@@ -21,10 +21,10 @@ pub fn interpret(source: &str) -> Result<(), errors::Error> {
     Ok(())
 }
 
-pub fn generate_parsed_ast(source: &str) -> Result<Vec<Statement>, errors::Error> {
+pub fn generate_parsed_ast(source: &str, filename: &str) -> Result<Vec<Statement>, errors::Error> {
     let scanner = Scanner::new();
     //println!("source:\n{}", source);
-    let tokens = scanner.scan_tokens(source)?;
+    let tokens = scanner.scan_tokens_with_filename(source, filename)?;
 
     let ast_parser = AstParser::new(tokens);
     ast_parser.parse_ast()

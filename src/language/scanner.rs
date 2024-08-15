@@ -12,6 +12,11 @@ fn simple_token(token_type: TokenType, line: usize) -> Token {
     }
 }
 
+pub struct TokenContainer {
+    pub scanned_tokens: Vec<Token>,
+    pub filename: String,
+}
+
 pub struct Scanner {
     source: String,
 
@@ -34,6 +39,16 @@ impl Scanner {
             current: 0,
             line: 1,
         }
+    }
+
+    pub fn scan_tokens_with_filename(self, source: &str, filename: &str) -> Result<TokenContainer, errors::Error> {
+        let scanned_tokens = self.scan_tokens(source)?;
+        let filename = filename.to_string();
+
+        Ok(TokenContainer {
+            scanned_tokens,
+            filename
+        })
     }
 
     pub fn scan_tokens(mut self, source: &str) -> Result<Vec<Token>, errors::Error> {

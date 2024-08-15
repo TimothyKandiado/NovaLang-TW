@@ -3,7 +3,7 @@ use crate::language::{
     errors,
     scanner::{
         object::Object,
-        token::{Token, TokenType},
+        token::{Token, TokenType}, TokenContainer,
     }, Include,
 };
 
@@ -23,6 +23,7 @@ use super::{
 /// parses an abstract syntax tree from generated tokens
 pub struct AstParser {
     tokens: Vec<Token>,
+    filename: String,
     current: usize,
     error_occurred: bool,
 }
@@ -30,9 +31,12 @@ pub struct AstParser {
 const MAX_PARAMETERS: usize = 8;
 
 impl AstParser {
-    pub fn new(tokens: Vec<Token>) -> Self {
+    pub fn new(token_container: TokenContainer) -> Self {
+        let TokenContainer { scanned_tokens, filename } = token_container;
+
         Self {
-            tokens,
+            tokens: scanned_tokens,
+            filename,
             current: 0,
             error_occurred: false,
         }
@@ -123,7 +127,8 @@ impl AstParser {
             name.clone(),
             superclass,
             methods,
-            name.line
+            name.line,
+            self.filename.clone()
         )))
     }
 
@@ -143,10 +148,12 @@ impl AstParser {
             "Expected new line after variable declaration",
         )?;
         let line = name.line;
+        let filename = self.filename.clone();
         Ok(Statement::VariableDeclaration(VariableDeclaration {
             name,
             initializer,
             line,
+            filename
         }))
     }
 
@@ -181,12 +188,14 @@ impl AstParser {
         )?;
         let body = self.block_statement(&[TokenType::End], true)?;
         let line = name.line;
+        let filename = self.filename.clone();
         if let Statement::Block(body) = body {
             return Ok(Statement::FunctionStatement(Box::new(FunctionStatement {
                 name,
                 parameters,
                 body,
                 line,
+                filename
             })));
         }
 
@@ -236,7 +245,9 @@ impl AstParser {
         }
 
         let line = self.previous().line;
-        Ok(Statement::Include(Include {files, line}))
+        let filename = self.filename.clone();
+
+        Ok(Statement::Include(Include {files, line, filename}))
     }
 
     fn for_statement(&mut self) -> Result<Statement, errors::Error> {
@@ -259,11 +270,13 @@ impl AstParser {
             self.consume(TokenType::NewLine, "Expect new line after end")?;
         }
 
+        let filename = self.filename.clone();
         Ok(Statement::If(Box::new(IfStatement {
             condition,
             then_branch,
             else_branch,
-            line
+            line,
+            filename
         })))
     }
 
@@ -289,10 +302,12 @@ impl AstParser {
         let line = current.line;
 
         let body = self.block_statement(&[TokenType::End], true)?;
+        let filename = self.filename.clone();
         Ok(Statement::WhileLoop(Box::new(WhileLoop {
             condition,
             body,
             line,
+            filename
         })))
     }
 
@@ -316,7 +331,8 @@ impl AstParser {
             self.consume(TokenType::NewLine, "expect newline after block")?;
         }
 
-        Ok(Statement::Block(Block { statements, line }))
+        let filename = self.filename.clone();
+        Ok(Statement::Block(Block { statements, line, filename }))
     }
 
     fn expression_statement(&mut self) -> Result<Statement, errors::Error> {
@@ -357,6 +373,7 @@ impl AstParser {
     fn assignment(&mut self) -> Result<Expression, errors::Error> {
         let expression = self.or()?;
         let line = self.previous().line;
+        let filename = self.filename.clone();
 
         if self.match_tokens(&[TokenType::Equal]) {
             let equals = self.previous().clone();
@@ -364,7 +381,7 @@ impl AstParser {
 
             if let Expression::Variable(variable) = &expression {
                 let name = variable.name.clone();
-                return Ok(Expression::Assign(Box::new(Assign { name, value, line})));
+                return Ok(Expression::Assign(Box::new(Assign { name, value, line, filename})));
             } else if let Expression::Get(get) = &expression {
                 let get = *get.clone();
 
@@ -372,6 +389,8 @@ impl AstParser {
                     name: get.name,
                     object: get.object,
                     value,
+                    line,
+                    filename
                 })));
             }
 
@@ -510,6 +529,7 @@ impl AstParser {
 
     fn call(&mut self) -> Result<Expression, errors::Error> {
         let expression = self.primary()?;
+        let line = self.previous().line;
 
         if self.match_tokens(&[TokenType::LeftParen]) {
             return self.finish_call(expression);
@@ -523,10 +543,13 @@ impl AstParser {
                 self.consume(TokenType::RightParen, "Expect ')' after arguments")?;
             }
 
+            let filename = self.filename.clone();
             return Ok(Expression::Get(Box::new(Get {
                 object: expression,
                 name,
                 arguments,
+                line,
+                filename
             })));
         }
 

@@ -4,4 +4,5 @@ use super::Statement;
 pub struct Block {
     pub statements: Vec<Statement>,
     pub line: usize,
+    pub filename: String,
 }

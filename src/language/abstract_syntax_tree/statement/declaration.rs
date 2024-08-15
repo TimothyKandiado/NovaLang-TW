@@ -5,4 +5,5 @@ pub struct VariableDeclaration {
     pub name: Token,
     pub initializer: Option<Expression>,
     pub line: usize,
+    pub filename: String,
 }

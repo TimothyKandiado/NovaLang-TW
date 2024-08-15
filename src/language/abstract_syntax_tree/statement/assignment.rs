@@ -8,6 +8,7 @@ pub struct Assign {
     pub name: Token,
     pub value: Expression,
     pub line: usize,
+    pub filename: String,
 }
 
 impl Assign {
@@ -21,6 +22,8 @@ pub struct Get {
     pub object: Expression,
     pub name: Token,
     pub arguments: Option<Vec<Expression>>,
+    pub line: usize,
+    pub filename: String,
 }
 
 impl Get {
@@ -34,6 +37,8 @@ pub struct Set {
     pub object: Expression,
     pub name: Token,
     pub value: Expression,
+    pub line: usize,
+    pub filename: String,
 }
 
 impl Set {

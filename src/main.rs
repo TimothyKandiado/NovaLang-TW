@@ -1,7 +1,5 @@
 use std::{
-    env, fs,
-    io::{self, Write},
-    process::exit,
+    env, fs, io::{self, Write}, process::exit
 };
 
 use nova_tw::language::{generate_parsed_ast, AstInterpreter, errors};
@@ -33,7 +31,8 @@ fn repl() {
             println!("exiting");
             break;
         }
-        let parsed_ast = generate_parsed_ast(&input);
+
+        let parsed_ast = generate_parsed_ast(&input, "");
         if let Err(err) = parsed_ast {
             println!("{}", err);
             continue;
@@ -62,7 +61,7 @@ fn run_file(path: &str) {
 
     let code = result.unwrap();
 
-    let parsed_ast = generate_parsed_ast(&code);
+    let parsed_ast = generate_parsed_ast(&code, path);
     if let Err(err) = parsed_ast {
         println!("{}", err);
         return;

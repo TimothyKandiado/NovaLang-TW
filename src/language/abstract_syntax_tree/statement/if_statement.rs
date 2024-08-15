@@ -8,4 +8,5 @@ pub struct IfStatement {
     pub then_branch: Statement,
     pub else_branch: Option<Statement>,
     pub line: usize,
+    pub filename: String,
 }

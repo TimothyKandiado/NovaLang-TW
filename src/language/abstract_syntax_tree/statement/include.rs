@@ -4,6 +4,7 @@ use crate::language::{Expression, StatementVisitor};
 pub struct Include {
     pub files: Vec<Expression>,
     pub line: usize,
+    pub filename: String,
 }
 
 impl Include {
