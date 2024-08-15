@@ -25,7 +25,7 @@ pub enum Statement {
     FunctionStatement(Box<FunctionStatement>),
     ReturnStatement(Option<(Expression, usize, String)>),
     VariableDeclaration(VariableDeclaration),
-    ExpressionStatement(Expression),
+    ExpressionStatement((Expression, usize, String)),
     ClassStatement(ClassStatement),
     Include(Include),
 }

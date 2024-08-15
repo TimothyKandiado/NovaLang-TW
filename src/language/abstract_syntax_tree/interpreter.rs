@@ -379,8 +379,8 @@ impl StatementVisitor for AstInterpreter {
         Ok(())
     }
 
-    fn visit_expression_statement(&mut self, expression_statement: &Expression) -> Self::Output {
-        let object = self.evaluate(expression_statement)?;
+    fn visit_expression_statement(&mut self, expression_statement: &(Expression, usize, String)) -> Self::Output {
+        let object = self.evaluate(&expression_statement.0)?;
         if self.interactive {
             let binding = object.read();
 

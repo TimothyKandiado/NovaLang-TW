@@ -37,7 +37,7 @@ pub trait StatementVisitor {
     fn visit_function_statement(&mut self, function_statement: &FunctionStatement) -> Self::Output;
     fn visit_return(&mut self, return_statement: &Option<(Expression, usize, String)>) -> Self::Output;
     fn visit_var_declaration(&mut self, var_declaration: &VariableDeclaration) -> Self::Output;
-    fn visit_expression_statement(&mut self, expression_statement: &Expression) -> Self::Output;
+    fn visit_expression_statement(&mut self, expression_statement: &(Expression, usize, String)) -> Self::Output;
     fn visit_class_statement(&mut self, class_statement: &ClassStatement) -> Self::Output;
     fn visit_include(&mut self, include: &Include) -> Self::Output;
 }

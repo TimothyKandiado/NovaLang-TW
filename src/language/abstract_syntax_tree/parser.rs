@@ -339,9 +339,10 @@ impl AstParser {
 
     fn expression_statement(&mut self) -> Result<Statement, errors::Error> {
         let expression = self.expression()?;
+        let filename = self.filename.clone();
 
-        self.consume(TokenType::NewLine, "Expect newline after statement")?;
-        Ok(Statement::ExpressionStatement(expression))
+        let line = self.consume(TokenType::NewLine, "Expect newline after statement")?.line;
+        Ok(Statement::ExpressionStatement((expression, line, filename)))
     }
 
     fn synchronize(&mut self) {
