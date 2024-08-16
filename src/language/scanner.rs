@@ -190,6 +190,7 @@ impl Scanner {
                     while !self.is_at_end() && self.peek() != '\n' {
                         self.advance();
                     }
+                    self.line += 1;
                     self.advance();
                 }
 
